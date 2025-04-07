@@ -174,7 +174,7 @@ class EnterpriseDiagnosticClassifier:
         with torch.no_grad():
             outputs = self.model(**inputs)
             logits = outputs.logits
-            probs = torch.sigmoid(logits).cpu().numpy()[0]
+            probs = torch.softmax(logits, dim=-1).cpu().numpy()[0]
 
         # Get predictions above threshold
         above_threshold = probs > threshold
