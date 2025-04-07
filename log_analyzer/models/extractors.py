@@ -62,7 +62,7 @@ class EnterpriseDiagnosticClassifier:
             bias="none",
             task_type="SEQ_CLS",
             target_modules=[
-                "query_key_value",
+                "all-linear",
             ]
             #     "mlp.dense_4h_to_h",
             # "k_proj",
