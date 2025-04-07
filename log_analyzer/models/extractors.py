@@ -30,8 +30,8 @@ class EnterpriseDiagnosticClassifier:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # Initialize BERT components
-        self.tokenizer =  AutoTokenizer.from_pretrained("base_models/falcon-7b") #BertTokenizer.from_pretrained('allenai/longformer-base-4096')
-        self.model = AutoModelForSequenceClassification.from_pretrained("base_models/falcon-7b",
+        self.tokenizer =  AutoTokenizer.from_pretrained("tiiuae/falcon-7b") #BertTokenizer.from_pretrained('allenai/longformer-base-4096')
+        self.model = AutoModelForSequenceClassification.from_pretrained("tiiuae/falcon-7b",
              num_labels=len(self.all_labels),
              problem_type="multi_label_classification"
         )
