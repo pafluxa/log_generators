@@ -1,4 +1,4 @@
-
+import numpy
 import torch
 from transformers import BertTokenizer, BertForSequenceClassification
 from transformers import TrainingArguments, Trainer
@@ -29,9 +29,9 @@ class EnterpriseDiagnosticClassifier:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # Initialize BERT components
-        self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        self.tokenizer = BertTokenizer.from_pretrained('allenai/longformer-base-4096')
         self.model = BertForSequenceClassification.from_pretrained(
-            'bert-base-uncased',
+            'allenai/longformer-base-4096',
             num_labels=len(self.all_labels),
             problem_type="multi_label_classification"
         )
@@ -92,7 +92,7 @@ class EnterpriseDiagnosticClassifier:
             notes,
             truncation=True,
             padding=True,
-            max_length=256,
+            max_length=2048,
             return_tensors="pt"
         )
 
@@ -134,12 +134,11 @@ class EnterpriseDiagnosticClassifier:
     def _compute_metrics(self, eval_pred):
         """Custom metrics for multi-label classification."""
         logits, labels = eval_pred
-        preds = (torch.sigmoid(torch.tensor(logits)) > 0.5).int()
-        labels = torch.tensor(labels, device=logits.device).int()
+        preds = (torch.sigmoid(torch.tensor(logits)) > 0.5).int().numpy()
 
         # Calculate precision, recall, F1
-        precision = (preds & labels).sum() / preds.sum()
-        recall = (preds & labels).sum() / labels.sum()
+        precision = numpy.logical_and(preds, labels).sum() / preds.sum()
+        recall = numpy.logical_and(preds, labels).sum() / labels.sum()
         f1 = 2 * (precision * recall) / (precision + recall + 1e-10)
 
         return {
@@ -214,7 +213,7 @@ if __name__ == "__main__":
     classifier = EnterpriseDiagnosticClassifier(systems)
 
     # 2. Prepare training data (example)
-    reports = [generator.generate_report() for _ in range(500)]
+    reports = [generator.generate_report() for _ in range(50)]
     train_data = [{"note": rep['note'], "systems": rep['systems']} for rep in reports]
 
     # 3. Preprocess data
