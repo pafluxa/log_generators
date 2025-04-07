@@ -1,7 +1,6 @@
 import numpy
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-from transformers import BertTokenizer, BertForSequenceClassification
 from transformers import TrainingArguments, Trainer
 from peft import LoraConfig, get_peft_model, TaskType
 import numpy as np
@@ -31,8 +30,7 @@ class EnterpriseDiagnosticClassifier:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # Initialize BERT components
-        tokenizer = AutoTokenizer.from_pretrained(self.model_name, trust_remote_code=True)
-        self.tokenizer = tokenizer
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, trust_remote_code=True)
 
         self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name,
              num_labels=len(self.all_labels),
@@ -97,13 +95,11 @@ class EnterpriseDiagnosticClassifier:
         encodings = self.tokenizer(
             notes,
             padding="max_length",
-            truncation=True
+            padding='max_length',
+            return_tensors="pt"
         )
-        #     truncation=True,
-        #     padding=True,
-        #     max_length=2048,
-        #     return_tensors="pt"
-        # )
+
+        print(encodings['input_ids'].shape)
 
         # Convert labels to multi-hot tensors
         label_tensors = self._labels_to_tensor(labels)
