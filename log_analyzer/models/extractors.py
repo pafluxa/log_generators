@@ -61,7 +61,6 @@ class EnterpriseDiagnosticClassifier:
             lora_dropout=lora_dropout,
             bias="none",
             task_type="SEQ_CLS",
-            model_type='llama',
             target_modules=[
                 "q_proj",
                 "k_proj",
