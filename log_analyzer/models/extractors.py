@@ -1,32 +1,28 @@
+
 import torch
-from transformers import BertTokenizer, BertForSequenceClassification, AdamW
+from transformers import BertTokenizer, BertForSequenceClassification
 from transformers import TrainingArguments, Trainer
 from peft import LoraConfig, get_peft_model
 import numpy as np
-from sklearn.preprocessing import MultiLabelBinarizer
 from datasets import Dataset
-import pandas as pd
+from typing import List, Dict
 
 from log_analyzer.generators.uss_enterprise import EnterpriseDiagnosticGenerator
 
 
 class EnterpriseDiagnosticClassifier:
     """
-    Fine-tunes BERT with LoRA to classify USS Enterprise system/subsystem failures from diagnostic notes.
-
-    Features:
-    - Processes diagnostic notes into system/subsystem probabilities
-    - Uses LoRA for efficient fine-tuning
-    - Handles multi-label classification
-    - Maintains fixed system/subsystem ontology
+    Fine-tunes BERT with LoRA to classify USS Enterprise system/subsystem failures.
+    Uses manual multi-hot encoding for multi-label classification.
     """
 
-    def __init__(self, systems_dict: dict):
+    def __init__(self, systems_dict: Dict):
         """
-        Initialize classifier with system configurations.
+        Initialize classifier with ship systems configuration.
 
         Args:
             systems_dict: Complete dictionary of all ship systems and subsystems
+                         Format: {"system_name": {"subsystems": [...], ...}, ...}
         """
         self.systems = systems_dict
         self._initialize_ontology()
@@ -45,15 +41,17 @@ class EnterpriseDiagnosticClassifier:
         self.model.to(self.device)
 
     def _initialize_ontology(self):
-        """Create fixed list of all system::subsystem pairs."""
+        """Create fixed list of all system::subsystem pairs with indices."""
         self.all_labels = []
-        for system, config in self.systems.items():
-            for subsystem in config['subsystems']:
-                self.all_labels.append(f"{system}::{subsystem}")
 
-        # Create label binarizer
-        self.mlb = MultiLabelBinarizer(classes=self.all_labels)
-        self.mlb.fit([self.all_labels])  # Fit on all possible labels
+        # Build list of all possible system::subsystem pairs
+        for system_name, system_config in self.systems.items():
+            for subsystem in system_config['subsystems']:
+                self.all_labels.append(f"{system_name}::{subsystem}")
+
+        # Create mapping dictionaries
+        self.label_to_idx = {label: idx for idx, label in enumerate(self.all_labels)}
+        self.idx_to_label = {idx: label for label, idx in self.label_to_idx.items()}
 
     def _setup_lora(self, r=8, lora_alpha=16, lora_dropout=0.1):
         """Configure LoRA adapter layers."""
@@ -63,17 +61,28 @@ class EnterpriseDiagnosticClassifier:
             lora_dropout=lora_dropout,
             bias="none",
             task_type="SEQ_CLS",
-            target_modules=["query", "value"]  # Apply to attention layers
+            target_modules=["query", "value"]
         )
         self.model = get_peft_model(self.model, lora_config)
         self.model.print_trainable_parameters()
 
-    def preprocess_data(self, notes: list, labels: list):
+    def _labels_to_tensor(self, label_lists: List[List[str]]) -> torch.Tensor:
+        """Convert list of label lists to multi-hot tensor."""
+        batch_size = len(label_lists)
+        tensor = torch.zeros((batch_size, len(self.all_labels)), dtype=torch.float32)
+
+        for i, labels in enumerate(label_lists):
+            for label in labels:
+                if label in self.label_to_idx:
+                    tensor[i, self.label_to_idx[label]] = 1.0
+        return tensor
+
+    def preprocess_data(self, notes: List[str], labels: List[List[str]]):
         """
         Prepare training data.
 
         Args:
-            notes: List of diagnostic notes
+            notes: List of diagnostic note texts
             labels: List of lists containing system::subsystem strings
         Returns:
             HuggingFace Dataset ready for training
@@ -87,17 +96,14 @@ class EnterpriseDiagnosticClassifier:
             return_tensors="pt"
         )
 
-        # Convert labels to multi-hot vectors
-        binary_labels = self.mlb.transform(labels)
+        # Convert labels to multi-hot tensors
+        label_tensors = self._labels_to_tensor(labels)
 
-        # Create dataset
-        dataset = Dataset.from_dict({
+        return Dataset.from_dict({
             'input_ids': encodings['input_ids'],
             'attention_mask': encodings['attention_mask'],
-            'labels': binary_labels.astype(np.float32)
+            'labels': label_tensors
         })
-
-        return dataset
 
     def train(self, train_dataset, val_dataset=None, epochs=3, batch_size=8):
         """Fine-tune the model with LoRA."""
@@ -110,7 +116,7 @@ class EnterpriseDiagnosticClassifier:
             weight_decay=0.01,
             logging_dir='./logs',
             logging_steps=10,
-            evaluation_strategy="epoch" if val_dataset else "no",
+            # evaluation_strategy="epoch" if val_dataset else "no",
             save_strategy="epoch",
             load_best_model_at_end=True if val_dataset else False
         )
@@ -126,9 +132,9 @@ class EnterpriseDiagnosticClassifier:
         trainer.train()
 
     def _compute_metrics(self, eval_pred):
-        """Custom metrics calculation for multi-label classification."""
+        """Custom metrics for multi-label classification."""
         logits, labels = eval_pred
-        preds = (torch.sigmoid(torch.tensor(logits))) > 0.5
+        preds = (torch.sigmoid(torch.tensor(logits)) > 0.5).int()
 
         # Calculate precision, recall, F1
         precision = (preds & labels).sum() / preds.sum()
@@ -147,10 +153,10 @@ class EnterpriseDiagnosticClassifier:
 
         Args:
             note: Diagnostic note text
-            threshold: Probability threshold for considering a prediction positive
+            threshold: Probability threshold for positive prediction
         Returns:
             dict: {
-                'systems': list of predicted system::subsystem pairs,
+                'systems': predicted system::subsystem pairs,
                 'probabilities': corresponding probabilities,
                 'raw_output': full probability vector
             }
@@ -182,13 +188,13 @@ class EnterpriseDiagnosticClassifier:
             'raw_output': probs
         }
 
-    def save_model(self, path):
+    def save_model(self, path: str):
         """Save model and tokenizer."""
         self.model.save_pretrained(path)
         self.tokenizer.save_pretrained(path)
 
     @classmethod
-    def load_model(cls, systems_dict, path):
+    def load_model(cls, systems_dict: Dict, path: str):
         """Load saved model."""
         instance = cls(systems_dict)
         instance.model = BertForSequenceClassification.from_pretrained(path)
@@ -199,10 +205,33 @@ class EnterpriseDiagnosticClassifier:
 
 # Example Usage
 if __name__ == "__main__":
-    # 1. Prepare your training data (example format)
+
     generator = EnterpriseDiagnosticGenerator()
-    reports = [generator.generate_full_report() for _ in range(100)]
+    systems = generator._initialize_system_templates()
+
+    # 1. Initialize with your systems dictionary
+    classifier = EnterpriseDiagnosticClassifier(systems)
+
+    # 2. Prepare training data (example)
+    reports = [generator.generate_report() for _ in range(100)]
     train_data = [{"note": rep['note'], "systems": rep['systems']} for rep in reports]
+
+    # 3. Preprocess data
+    notes = [item["note"] for item in train_data]
+    labels = [item["systems"] for item in train_data]
+    train_dataset = classifier.preprocess_data(notes, labels)
+
+    # 4. Train
+    classifier.train(train_dataset, epochs=3)
+
+    # 5. Predict
+    test_note = "Heisenberg compensator degradation with plasma eddies"
+    prediction = classifier.predict(test_note)
+
+    print("Diagnostic Analysis:")
+    print(f"Note: {test_note}")
+    for system, prob in zip(prediction['systems'], prediction['probabilities']):
+        print(f"- {system}: {prob:.2%} probability")
     # [
     #     {
     #         "note": "Unstable plasma conduit in sector 5 with secondary gravimetric shear",
@@ -212,7 +241,7 @@ if __name__ == "__main__":
     # ]
 
     # 2. Initialize classifier with your systems dictionary
-    classifier = EnterpriseDiagnosticClassifier(systems)
+    classifier = EnterpriseDiagnosticClassifier(train_data)
 
     # 3. Prepare datasets
     notes = [item["note"] for item in train_data]
