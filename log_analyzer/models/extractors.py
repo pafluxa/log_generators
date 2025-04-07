@@ -95,7 +95,6 @@ class EnterpriseDiagnosticClassifier:
         encodings = self.tokenizer(
             notes,
             padding="max_length",
-            padding='max_length',
             return_tensors="pt"
         )
 
