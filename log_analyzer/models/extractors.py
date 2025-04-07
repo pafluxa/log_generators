@@ -31,7 +31,7 @@ class EnterpriseDiagnosticClassifier:
 
         # Initialize BERT components
         self.tokenizer =  AutoTokenizer.from_pretrained("google/gemma-2b") #BertTokenizer.from_pretrained('allenai/longformer-base-4096')
-        self.model = AutoModelForSequenceClassification.from_pretrained("google/gemma-2b"
+        self.model = AutoModelForSequenceClassification.from_pretrained("google/gemma-2b",
              num_labels=len(self.all_labels),
              problem_type="multi_label_classification"
         )
