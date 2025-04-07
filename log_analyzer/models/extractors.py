@@ -30,8 +30,8 @@ class EnterpriseDiagnosticClassifier:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # Initialize BERT components
-        self.tokenizer =  AutoTokenizer.from_pretrained("google/gemma-2b") #BertTokenizer.from_pretrained('allenai/longformer-base-4096')
-        self.model = AutoModelForSequenceClassification.from_pretrained("google/gemma-2b",
+        self.tokenizer =  AutoTokenizer.from_pretrained("base_models/falcon-7b") #BertTokenizer.from_pretrained('allenai/longformer-base-4096')
+        self.model = AutoModelForSequenceClassification.from_pretrained("base_models/falcon-7b",
              num_labels=len(self.all_labels),
              problem_type="multi_label_classification"
         )
@@ -61,16 +61,7 @@ class EnterpriseDiagnosticClassifier:
             lora_dropout=lora_dropout,
             bias="none",
             task_type="SEQ_CLS",
-            target_modules=[
-                "all-linear",
-            ]
-            #     "mlp.dense_4h_to_h",
-            # "k_proj",
-            # "v_proj",
-            # "o_proj",
-            # "gate_proj",
-            # "up_proj",
-            # "down_proj""query", "value"]
+            target_modules=['query_key_value']
         )
         self.model = get_peft_model(self.model, lora_config)
         self.model.print_trainable_parameters()
