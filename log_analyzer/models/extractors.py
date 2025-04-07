@@ -128,7 +128,7 @@ class EnterpriseDiagnosticClassifier:
     def _compute_metrics(self, eval_pred):
         """Custom metrics calculation for multi-label classification."""
         logits, labels = eval_pred
-        preds = (torch.sigmoid(torch.tensor(logits)) > 0.5
+        preds = (torch.sigmoid(torch.tensor(logits))) > 0.5
 
         # Calculate precision, recall, F1
         precision = (preds & labels).sum() / preds.sum()
@@ -201,8 +201,8 @@ class EnterpriseDiagnosticClassifier:
 if __name__ == "__main__":
     # 1. Prepare your training data (example format)
     generator = EnterpriseDiagnosticGenerator()
-    reports = [rep = generator.generate_full_report()in for _ in range(100)]
-    train_data = [{"note": rep['note'], "systems:" rep['systems']} for rep in reports]
+    reports = [generator.generate_full_report() for _ in range(100)]
+    train_data = [{"note": rep['note'], "systems": rep['systems']} for rep in reports]
     # [
     #     {
     #         "note": "Unstable plasma conduit in sector 5 with secondary gravimetric shear",
