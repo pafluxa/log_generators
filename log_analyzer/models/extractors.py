@@ -105,7 +105,7 @@ class EnterpriseDiagnosticClassifier:
             'labels': label_tensors
         })
 
-    def train(self, train_dataset, val_dataset=None, epochs=3, batch_size=8):
+    def train(self, train_dataset, val_dataset=None, epochs=50, batch_size=8):
         """Fine-tune the model with LoRA."""
         training_args = TrainingArguments(
             output_dir='./results',
@@ -116,7 +116,7 @@ class EnterpriseDiagnosticClassifier:
             weight_decay=0.01,
             logging_dir='./logs',
             logging_steps=10,
-            # evaluation_strategy="epoch" if val_dataset else "no",
+            eval_strategy="epoch" if val_dataset else "no",
             save_strategy="epoch",
             load_best_model_at_end=True if val_dataset else False
         )
@@ -135,6 +135,7 @@ class EnterpriseDiagnosticClassifier:
         """Custom metrics for multi-label classification."""
         logits, labels = eval_pred
         preds = (torch.sigmoid(torch.tensor(logits)) > 0.5).int()
+        labels = torch.tensor(labels, device=logits.device).int()
 
         # Calculate precision, recall, F1
         precision = (preds & labels).sum() / preds.sum()
@@ -213,20 +214,20 @@ if __name__ == "__main__":
     classifier = EnterpriseDiagnosticClassifier(systems)
 
     # 2. Prepare training data (example)
-    reports = [generator.generate_report() for _ in range(100)]
+    reports = [generator.generate_report() for _ in range(500)]
     train_data = [{"note": rep['note'], "systems": rep['systems']} for rep in reports]
 
     # 3. Preprocess data
     notes = [item["note"] for item in train_data]
     labels = [item["systems"] for item in train_data]
     train_dataset = classifier.preprocess_data(notes, labels)
-
+    train_dataset, val_dataset = train_dataset.train_test_split(test_size=0.3, shuffle=True).values()
     # 4. Train
-    classifier.train(train_dataset, epochs=20)
+    classifier.train(train_dataset, val_dataset=val_dataset, epochs=100)
 
     # 5. Predict
     test_note = "Heisenberg compensator degradation with plasma eddies"
-    prediction = classifier.predict(test_note)
+    prediction = classifier.predict(test_note, threshold=0.2)
 
     print("Diagnostic Analysis:")
     print(f"Note: {test_note}")
