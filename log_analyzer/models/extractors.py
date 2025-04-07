@@ -1,5 +1,6 @@
 import numpy
 import torch
+from transformers import AutoTokenizer, FalconForSequenceClassification
 from transformers import BertTokenizer, BertForSequenceClassification
 from transformers import TrainingArguments, Trainer
 from peft import LoraConfig, get_peft_model
@@ -29,11 +30,10 @@ class EnterpriseDiagnosticClassifier:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # Initialize BERT components
-        self.tokenizer = BertTokenizer.from_pretrained('allenai/longformer-base-4096')
-        self.model = BertForSequenceClassification.from_pretrained(
-            'allenai/longformer-base-4096',
-            num_labels=len(self.all_labels),
-            problem_type="multi_label_classification"
+        self.tokenizer =  AutoTokenizer.from_pretrained("Rocketknight1/falcon-rw-1b") #BertTokenizer.from_pretrained('allenai/longformer-base-4096')
+        self.model = FalconForSequenceClassification.from_pretrained("Rocketknight1/falcon-rw-1b",
+             num_labels=len(self.all_labels),
+             problem_type="multi_label_classification"
         )
 
         # Initialize LoRA
@@ -61,7 +61,14 @@ class EnterpriseDiagnosticClassifier:
             lora_dropout=lora_dropout,
             bias="none",
             task_type="SEQ_CLS",
-            target_modules=["query", "value"]
+            model_type='llama',
+            target_modules=[
+                "q_proj",
+                "k_proj",
+                "v_proj",
+                "o_proj",
+                "gate_proj",
+                "up_proj",]
         )
         self.model = get_peft_model(self.model, lora_config)
         self.model.print_trainable_parameters()
