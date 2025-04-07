@@ -30,8 +30,9 @@ class EnterpriseDiagnosticClassifier:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # Initialize BERT components
-        self.tokenizer =  AutoTokenizer.from_pretrained("tiiuae/falcon-7b") #BertTokenizer.from_pretrained('allenai/longformer-base-4096')
-        self.model = AutoModelForSequenceClassification.from_pretrained("tiiuae/falcon-7b",
+        self.tokenizer =  AutoTokenizer.from_pretrained("tiiuae/falcon-rw-1b") #BertTokenizer.from_pretrained('allenai/longformer-base-4096')
+        self.tokenizer.pad_token = self.tokenizer.eos_token,
+        self.model = AutoModelForSequenceClassification.from_pretrained("tiiuae/falcon-rw-1b",
              num_labels=len(self.all_labels),
              problem_type="multi_label_classification"
         )
@@ -105,7 +106,7 @@ class EnterpriseDiagnosticClassifier:
             'labels': label_tensors
         })
 
-    def train(self, train_dataset, val_dataset=None, epochs=50, batch_size=8):
+    def train(self, train_dataset, val_dataset=None, epochs=50, batch_size=4):
         """Fine-tune the model with LoRA."""
         training_args = TrainingArguments(
             output_dir='./results',
