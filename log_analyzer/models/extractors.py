@@ -32,10 +32,6 @@ class EnterpriseDiagnosticClassifier:
 
         # Initialize BERT components
         tokenizer = AutoTokenizer.from_pretrained(self.model_name, trust_remote_code=True)
-        tokenizer.pad_token = tokenizer.eos_token
-        tokenizer.padding_side = "right"
-        tokenizer.pad_token = tokenizer.eos_token,
-
         self.tokenizer = tokenizer
 
         self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name,
