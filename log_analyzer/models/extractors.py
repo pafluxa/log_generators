@@ -25,7 +25,7 @@ class EnterpriseDiagnosticClassifier:
             systems_dict: Complete dictionary of all ship systems and subsystems
                          Format: {"system_name": {"subsystems": [...], ...}, ...}
         """
-        self.model_name = 'tiiuae/falcon-rw-1b'
+        self.model_name = 'tiiuae/Falcon3-1B-Base'
         self.systems = systems_dict
         self._initialize_ontology()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
