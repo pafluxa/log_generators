@@ -217,7 +217,7 @@ if __name__ == "__main__":
     classifier = EnterpriseDiagnosticClassifier(systems)
 
     # 2. Prepare training data (example)
-    reports = [generator.generate_report() for _ in range(50)]
+    reports = [generator.generate_report() for _ in range(67)]
     train_data = [{"note": rep['note'], "systems": rep['systems']} for rep in reports]
 
     # 3. Preprocess data
