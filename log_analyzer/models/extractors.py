@@ -62,12 +62,15 @@ class EnterpriseDiagnosticClassifier:
             bias="none",
             task_type="SEQ_CLS",
             target_modules=[
-                "q_proj",
-                "k_proj",
-                "v_proj",
-                "o_proj",
-                "gate_proj",
-                "up_proj",]
+                "query_key_value",
+            ]
+            #     "mlp.dense_4h_to_h",
+            # "k_proj",
+            # "v_proj",
+            # "o_proj",
+            # "gate_proj",
+            # "up_proj",
+            # "down_proj""query", "value"]
         )
         self.model = get_peft_model(self.model, lora_config)
         self.model.print_trainable_parameters()
