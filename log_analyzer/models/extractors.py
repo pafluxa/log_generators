@@ -25,14 +25,20 @@ class EnterpriseDiagnosticClassifier:
             systems_dict: Complete dictionary of all ship systems and subsystems
                          Format: {"system_name": {"subsystems": [...], ...}, ...}
         """
+        self.model_name = 'tiiuae/falcon-rw-1b'
         self.systems = systems_dict
         self._initialize_ontology()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # Initialize BERT components
-        self.tokenizer =  AutoTokenizer.from_pretrained("tiiuae/falcon-rw-1b") #BertTokenizer.from_pretrained('allenai/longformer-base-4096')
-        self.tokenizer.pad_token = self.tokenizer.eos_token,
-        self.model = AutoModelForSequenceClassification.from_pretrained("tiiuae/falcon-rw-1b",
+        tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+        tokenizer.pad_token = tokenizer.eos_token
+        tokenizer.padding_side = "right"
+        tokenizer.pad_token = tokenizer.eos_token,
+
+        self.tokenizer = tokenizer
+
+        self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name,
              num_labels=len(self.all_labels),
              problem_type="multi_label_classification"
         )
