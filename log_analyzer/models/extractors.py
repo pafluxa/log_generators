@@ -174,7 +174,7 @@ class EnterpriseDiagnosticClassifier:
         with torch.no_grad():
             outputs = self.model(**inputs)
             logits = outputs.logits
-            probs = torch.softmax(logits, dim=-1).cpu().numpy()[0]
+            probs = torch.sigmoid(logits).cpu().numpy()[0]
 
         # Get predictions above threshold
         above_threshold = probs > threshold
@@ -222,7 +222,7 @@ if __name__ == "__main__":
     train_dataset = classifier.preprocess_data(notes, labels)
 
     # 4. Train
-    classifier.train(train_dataset, epochs=3)
+    classifier.train(train_dataset, epochs=20)
 
     # 5. Predict
     test_note = "Heisenberg compensator degradation with plasma eddies"
