@@ -232,34 +232,3 @@ if __name__ == "__main__":
     print(f"Note: {test_note}")
     for system, prob in zip(prediction['systems'], prediction['probabilities']):
         print(f"- {system}: {prob:.2%} probability")
-    # [
-    #     {
-    #         "note": "Unstable plasma conduit in sector 5 with secondary gravimetric shear",
-    #         "systems": ["warp_core::plasma_conduit", "deflector_dish::graviton_emitter"]
-    #     },
-    #     # ... more examples
-    # ]
-
-    # 2. Initialize classifier with your systems dictionary
-    classifier = EnterpriseDiagnosticClassifier(train_data)
-
-    # 3. Prepare datasets
-    notes = [item["note"] for item in train_data]
-    labels = [item["systems"] for item in train_data]
-    train_dataset = classifier.preprocess_data(notes, labels)
-
-    # 4. Train the model
-    classifier.train(train_dataset, epochs=3)
-
-    # 5. Save the model
-    classifier.save_model("./enterprise_diagnostic_bert")
-
-    # 6. Make predictions
-    test_note = "Pattern degradation in Heisenberg compensator with secondary plasma eddies"
-    prediction = classifier.predict(test_note)
-
-    print("\nDiagnostic Report Analysis:")
-    print(f"Note: {test_note}")
-    print("\nPredicted System Failures:")
-    for system, prob in zip(prediction['systems'], prediction['probabilities']):
-        print(f"- {system}: {prob:.2%} probability")
