@@ -3,7 +3,7 @@ import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from transformers import BertTokenizer, BertForSequenceClassification
 from transformers import TrainingArguments, Trainer
-from peft import LoraConfig, get_peft_model
+from peft import LoraConfig, get_peft_model, TaskType
 import numpy as np
 from datasets import Dataset
 from typing import List, Dict
