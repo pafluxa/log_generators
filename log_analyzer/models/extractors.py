@@ -25,7 +25,7 @@ class EnterpriseDiagnosticClassifier:
             systems_dict: Complete dictionary of all ship systems and subsystems
                          Format: {"system_name": {"subsystems": [...], ...}, ...}
         """
-        self.model_name = 'tiiuae/Falcon3-1B-Base'
+        self.model_name = 'bert-base-cased'
         self.systems = systems_dict
         self._initialize_ontology()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -63,13 +63,16 @@ class EnterpriseDiagnosticClassifier:
     def _setup_lora(self, r=8, lora_alpha=16, lora_dropout=0.1):
         """Configure LoRA adapter layers."""
         lora_config = LoraConfig(
-            r=r,
-            lora_alpha=lora_alpha,
-            lora_dropout=lora_dropout,
-            bias="none",
-            task_type="SEQ_CLS",
-            target_modules=['query_key_value']
+            task_type=TaskType.SEQ_CLS, r=1, lora_alpha=1, lora_dropout=0.1
         )
+        # lora_config = LoraConfig(
+        #     r=r,
+        #     lora_alpha=lora_alpha,
+        #     lora_dropout=lora_dropout,
+        #     bias="none",
+        #     task_type="SEQ_CLS",
+        #     target_modules=['query_key_value']
+        # )
         self.model = get_peft_model(self.model, lora_config)
         self.model.print_trainable_parameters()
 
@@ -97,11 +100,14 @@ class EnterpriseDiagnosticClassifier:
         # Tokenize text
         encodings = self.tokenizer(
             notes,
-            truncation=True,
-            padding=True,
-            max_length=2048,
-            return_tensors="pt"
+            padding="max_length",
+            truncation=True
         )
+        #     truncation=True,
+        #     padding=True,
+        #     max_length=2048,
+        #     return_tensors="pt"
+        # )
 
         # Convert labels to multi-hot tensors
         label_tensors = self._labels_to_tensor(labels)
