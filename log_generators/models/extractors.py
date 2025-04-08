@@ -153,13 +153,14 @@ if __name__ == '__main__':
         label_names=label_names,
         output_dir='./results',
         num_train_epochs=1,
-        per_device_train_batch_size=4,
-        per_device_eval_batch_size=4,
-        warmup_steps=10,
-        weight_decay=0.01,
+        per_device_train_batch_size=16,
+        per_device_eval_batch_size=16,
+        warmup_steps=40,
+        weight_decay=0.001,
         logging_dir='./logs',
         logging_steps=1,
-        eval_strategy="epoch"
+        eval_strategy="steps",
+        eval_steps=100,
     )
 
     trainer = Trainer(
