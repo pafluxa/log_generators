@@ -137,5 +137,5 @@ if __name__ == '__main__':
 
     print("Diagnostic Analysis:")
     print(f"Note: {test_note}")
-    for system, prob in zip(prediction['systems'], prediction['probabilities']):
+    for system, prob in zip(prediction['systems'], prediction['raw_output']):
         print(f"- {system}: {prob:.2%} probability")
