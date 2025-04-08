@@ -68,14 +68,13 @@ def predict(note, model, label_encoder, tokenizer, compute_device, threshold=0.5
     # Get predictions above threshold
     above_threshold = probs > threshold
     labels = numpy.zeros_like(probs, dtype=numpy.int64)
-    labels = labels[above_threshold]
-    labels_probs = probs[above_threshold]
+    labels[above_threshold] = 1
     labels = numpy.expand_dims(labels, axis=0)
     predicted_labels = label_encoder.inverse_transform(labels)
 
     return {
         'systems': predicted_labels,
-        'raw_output': labels_probs
+        'probs': probs
     }
 
 def dataset_to_hf_dataset(names):
@@ -177,5 +176,5 @@ if __name__ == '__main__':
 
     print("Diagnostic Analysis:")
     print(f"Note: {test_note}")
-    for system, prob in zip(prediction['systems'], prediction['raw_output']):
+    for system, prob in zip(prediction['systems'], prediction['probs']):
         print(f"- {system}: {prob:.2%} probability")
