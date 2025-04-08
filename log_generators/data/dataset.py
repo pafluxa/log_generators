@@ -31,7 +31,7 @@ class USSEnterpriseSystemsDataset(IterableDataset):
         self.gen = generator
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
         self.max_length = max_length
-        self.chunk_size = 32
+        self.chunk_size = 8
         # create ordinal encoding of labels
         self.labels_as_txt = list(config.keys())
         self._fit_label_encoder()
@@ -45,10 +45,10 @@ class USSEnterpriseSystemsDataset(IterableDataset):
 
     def _generate_and_parse_reports(self, chunksize: int) -> Dict[str, List[str]]:
         
-        report_data = self.gen.generate_report_chunk(chunksize)
         notes = []
         systems = [] 
-        for data in report_data:
+        for _ in range(chunksize):
+            data = self.gen.generate_report()
             note_txt = data['note']
             affections_raw = data['systems']
             affections = affections_raw.split(';')
@@ -77,14 +77,11 @@ class USSEnterpriseSystemsDataset(IterableDataset):
         for idx, labels in enumerate(multihot_labels):
             # multi-hot vector encodes labels
             encoded_labels = torch.tensor(labels, dtype=torch.float32)
-            enc = numpy.expand_dims(encoded_labels.numpy(), axis=0)
-            print(f"[DEBUG] text is \n {notes[idx]}\n")
-            print(f"[DEBUG] labels are = {self.label_encoder.inverse_transform(enc)}")
-            
             yield {
                 'input_ids': tokenized['input_ids'][idx],
                 'attention_mask': tokenized['attention_mask'][idx],
-                'labels': encoded_labels
+                'labels': encoded_labels,
+                'text': notes[idx]
             }
             
 if __name__ == '__main__':
@@ -95,12 +92,13 @@ if __name__ == '__main__':
     uss_enterprise_systems_info = config
 
     dataset = USSEnterpriseSystemsDataset(
-        generator=USSEnterpriseDiagnosticGenerator(refine_with_deepseek=False),
+        generator=USSEnterpriseDiagnosticGenerator(refine_with_deepseek=True),
         config = uss_enterprise_systems_info,
     )
 
     counter = 0
     for entry in dataset:
+        print(entry['text'])
         counter += 1
-        if counter > 30:
+        if counter > 8:
             break

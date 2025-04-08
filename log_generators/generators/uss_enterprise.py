@@ -14,13 +14,13 @@ import os
 import re
 
 import random
-from typing import Dict, List, Tuple, TypedDict
+from typing import Dict, List, Tuple, TypedDict, Optional
 from dataclasses import dataclass
 import numpy as np
 from faker import Faker
 import textwrap
 
-from deepseek import DeepSeekClient, DeepSeekAPIError, DeepSeekError
+from openai import OpenAI
 
 
 class SystemTemplate(TypedDict):
@@ -55,10 +55,11 @@ class USSEnterpriseDiagnosticGenerator:
         self._template = ""
         if refine_with_deepseek:
             self.refinement_enabled = True
-            self.ds_client = DeepSeekClient(api_key=os.environ['DEEPSEEK_API_KEY'])
-
+            self.ds_client = OpenAI(
+                base_url="https://api.deepseek.com",
+                api_key=os.environ['DEEPSEEK_API_KEY'])
             self._template = """
-Please refine the provided note according to these requirements:
+Your task is to refine the provided notes according to these requirements:
 
 Requirement 1.
 Make sure not to change the original content, even if you have previous knowledge about the contents of the note. 
@@ -76,12 +77,12 @@ Requirement 5.
 The refined note must have between 200 and 400 characters. 
 
 Requirement 6.
-The refined note must appear as it was written by a human being in a rush.
+The refined note must appear as it was written by a human being in a rush, with sporadic comments 
+about how things tend to all break at once.
 
-Note:
+Notes:
 
-{note}
-        """
+"""
     
         self.faker = Faker()
         np.random.seed()
@@ -541,51 +542,36 @@ Note:
             if (sys, sub) not in seen:
                 seen.add((sys, sub))
                 unique_affected.append((sys, sub))
-        return {
-            "note": " ".join(all_symptoms) + random.choice([".", "!", ","]),
-            "systems": ";".join(f"{sys}::{sub}" for sys, sub in unique_affected)
-        }
         
-    def generate_report_chunk(self, chunksize: int) -> List[StarfleetReport]:
-        outputs = []
-        for _ in range(chunksize):
-            outputs.append(self.generate_report()) 
-        if self.refinement_enabled:
-            msgs = []
-            for output in outputs:
-                note = output['note']
-                msg_content = self._template.format(note=note)
-                msgs.append({
-                    "role": "user",
-                    "content": msg_content
-                })
-            try:
-                response = self.ds_client.chat_completion(
-                    messages=msgs,
-                    model="deepseek-chat",
-                    temperature=1.2,
-                    top_p=0.9,
-                    max_tokens=400,
-                    presence_penalty=0.5,
-                    frequency_penalty=0.5,
-                    stream=False
-                )
-                raw_answer = response.choices[0].message.content
-                refined_note = raw_answer.replace('__BEGIN_NOTE__', '').replace('__END_NOTE__', '')
-                refined_note = refined_note.strip()
-                output['note'] = refined_note
-            except DeepSeekAPIError as e:
-                print(f"API Error: {str(e)}")
-            except DeepSeekError as e:
-                print(f"Client Error: {str(e)}")
-
-        return outputs
+        note = " ".join(all_symptoms) + random.choice([".", "!", ","]),
+        systems = ";".join(f"{sys}::{sub}" for sys, sub in unique_affected)
+        if self.refinement_enabled: 
+            content = f"Note :\n {note}\n\n"
+            # try:
+            response = self.ds_client.chat.completions.create(
+                messages=[
+                    {"role": "system", "content": "You are marvelous writer."},
+                    {"role": "user", "content": self._template + content},
+                ],
+                model="deepseek-chat",
+                temperature=1.2,
+                stream=False,
+                max_tokens=1024,
+            )
+            raw_answer = response.choices[0].message.content
+            #except Exception as e:
+            #     raise Exception(e)
+            
+            pattern = r'__BEGIN_NOTE__([\s\S]*?)__END_NOTE__'
+            note = re.search(pattern, raw_answer).group(1).strip()
+        
+        return {'note': note, 'systems': systems} 
         
     @property
     def systems(self):
         return self.system_templates
 
-    def generate_full_report(self) -> str:
+    def generate_full_report(self, report: Optional[str] = None) -> str:
         """Generate formatted Starfleet report."""
         report = self.generate_report()
 
@@ -603,9 +589,5 @@ Affected components:
 
 
 if __name__ == "__main__":
-    try:
-        generator = USSEnterpriseDiagnosticGenerator(refine_with_deepseek=True)
-        print(generator.generate_full_report())
-    except Exception as e:
-        print(f"Critical failure in report generation: {e}")
-        print("Engage emergency engineering protocols!")
+    generator = USSEnterpriseDiagnosticGenerator(refine_with_deepseek=True)
+    print(generator.generate_full_report())
