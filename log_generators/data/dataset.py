@@ -1,6 +1,6 @@
 from typing import Dict, List, Tuple
 
-import numpy
+from tqdm import tqdm
 
 import torch
 from torch.utils.data import IterableDataset
@@ -31,14 +31,15 @@ class USSEnterpriseSystemsDataset(IterableDataset):
         self.gen = generator
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
         self.max_length = max_length
-        self.chunk_size = 8
+        self.chunk_size = 128
         # create ordinal encoding of labels
         self.labels_as_txt = list(config.keys())
         self._fit_label_encoder()
+        self.notes, self.systems = self._generate_and_parse_reports(chunksize=self.chunk_size)
     
     def __len__(self):
         
-        return 100
+        return self.chunk_size
      
     def _fit_label_encoder(self):
         
@@ -51,13 +52,16 @@ class USSEnterpriseSystemsDataset(IterableDataset):
         
         notes = []
         systems = [] 
-        for _ in range(chunksize):
+        for _ in tqdm(range(chunksize)):
             data = self.gen.generate_report()
             note_txt = data['note']
             affections_raw = data['systems']
             affections = affections_raw.split(';')
             affected_systems = [asys.split('::')[0] for asys in affections]
-        
+            
+            print(note_txt)
+            print(affected_systems)
+             
             notes.append(note_txt) 
             systems.append(affected_systems)
             
@@ -66,27 +70,30 @@ class USSEnterpriseSystemsDataset(IterableDataset):
     def __iter__(self):
         
         # generate chunk of reports
-        data = self._generate_and_parse_reports(self.chunk_size)
-        notes = data['notes']
-        affected_systems = data['systems']
+        # data = self._generate_and_parse_reports(self.chunk_size)
+        notes = self.notes # data['notes']
+        affected_systems = self.systems # data['systems']
         # encode affected systems as ordinals
         multihot_labels = self.label_encoder.transform(affected_systems)
-        # tokenize notes
-        tokenized = self.tokenizer(notes,
-            truncation=True,
-            padding="max_length",
-            return_tensors="pt"
-        )
-        
         for idx, labels in enumerate(multihot_labels):
+            # tokenize notes
+            tokenized = self.tokenizer(notes[idx],
+                truncation=True,
+                padding="max_length",
+                return_tensors="pt"
+            )
             # multi-hot vector encodes labels
             encoded_labels = torch.tensor(labels, dtype=torch.float32)
             yield {
-                'input_ids': tokenized['input_ids'][idx],
-                'attention_mask': tokenized['attention_mask'][idx],
+                'input_ids': tokenized['input_ids'],
+                'attention_mask': tokenized['attention_mask'],
                 'labels': encoded_labels,
                 'text': notes[idx]
             }
+            
+        data = self._generate_and_parse_reports(self.chunk_size)
+        self.notes = data['notes']
+        self.systems = data['systems']
             
 if __name__ == '__main__':
     

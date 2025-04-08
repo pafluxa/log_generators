@@ -2,7 +2,7 @@ import numpy
 import torch
 import json
 
-# from datasets import Dataset
+from datasets import Dataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from transformers import TrainingArguments, Trainer
 from peft import LoraConfig, get_peft_model, TaskType
@@ -83,10 +83,11 @@ if __name__ == '__main__':
         config = json.loads(f.read())
     uss_enterprise_systems_info = config
 
-    dataset = USSEnterpriseSystemsDataset(
-        generator=USSEnterpriseDiagnosticGenerator(refine_with_deepseek=True),
+    torch_dataset = USSEnterpriseSystemsDataset(
+        generator=USSEnterpriseDiagnosticGenerator(refine_with_deepseek=False),
         config = uss_enterprise_systems_info,
-    ) 
+    )
+    dataset = Dataset(torch_dataset) 
     train_dataset, val_dataset = dataset, None
     
     model = AutoModelForSequenceClassification.from_pretrained(
