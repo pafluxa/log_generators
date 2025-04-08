@@ -29,9 +29,9 @@ def compute_metrics(eval_pred):
     f1 = 2 * (precision * recall) / (precision + recall + 1e-10)
 
     return {
-        'precision': precision.item(),
-        'recall': recall.item(),
-        'f1': f1.item()
+        'eval_precision': precision.item(),
+        'eval_recall': recall.item(),
+        'eval_f1': f1.item()
     }
 
 def predict(note, model, dataset, compute_device, threshold=0.5):
