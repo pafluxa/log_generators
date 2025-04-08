@@ -155,7 +155,7 @@ if __name__ == '__main__':
                     'train': 'train.parquet',
                     'test': 'test.parquet',
                 })
-    train_dataset, val_dataset = dataset['train'], dataset['test']
+    train_dataset, eval_dataset = dataset['train'], dataset['test']
      
     model = AutoModelForSequenceClassification.from_pretrained(
         base_model_name,
@@ -190,10 +190,12 @@ if __name__ == '__main__':
         model=model,
         args=training_args,
         train_dataset=train_dataset,
-        eval_dataset=val_dataset,
+        eval_dataset=eval_dataset,
         compute_metrics=compute_metrics,
     )
-
+    for batch in trainer.get_eval_dataloader(eval_dataset):
+        break
+    
     trainer.train()
 
     # 5. Evaluate the fine-tuned model
