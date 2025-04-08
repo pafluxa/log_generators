@@ -124,7 +124,7 @@ if __name__ == '__main__':
     base_model_name = 'bert-base-uncased'
     compute_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    n_systems, label_names, label_encoder, tokenizer = dataset_to_hf_dataset(["train", "test"], [128, 32])
+    n_systems, label_names, label_encoder, tokenizer = dataset_to_hf_dataset(["train", "test"], [1024, 128])
     
     dataset = load_dataset("parquet", 
                 data_dir="./tokenized/uss_enterprise_logs/", 
@@ -155,10 +155,10 @@ if __name__ == '__main__':
     training_args = TrainingArguments(
         label_names=["labels"],
         output_dir='./results',
-        num_train_epochs=1,
-        per_device_train_batch_size=4,
-        per_device_eval_batch_size=4,
-        warmup_steps=4,
+        num_train_epochs=8,
+        per_device_train_batch_size=16,
+        per_device_eval_batch_size=16,
+        warmup_steps=16,
         weight_decay=0.001,
         eval_strategy="epoch",
     )
