@@ -35,7 +35,11 @@ class USSEnterpriseSystemsDataset(IterableDataset):
         # create ordinal encoding of labels
         self.labels_as_txt = list(config.keys())
         self._fit_label_encoder()
+    
+    def __len__(self):
         
+        return 100
+     
     def _fit_label_encoder(self):
         
         self.label_encoder = MultiLabelBinarizer()
