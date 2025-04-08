@@ -6,7 +6,6 @@ import pyarrow as pa
 import pyarrow.parquet as papq
 
 from datasets import Dataset, load_dataset
-import evaluate
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from transformers import TrainingArguments, Trainer
 from peft import LoraConfig, get_peft_model, TaskType
@@ -19,15 +18,6 @@ from sklearn.preprocessing import OrdinalEncoder
 from log_generators.data.dataset import USSEnterpriseSystemsDataset
 from log_generators.generators.uss_enterprise import USSEnterpriseDiagnosticGenerator
 
-
-metric = evaluate.load("f1")
-def compute_metrics(eval_pred):
-    logits, labels = eval_pred
-    # convert the logits to their predicted class
-    predictions = numpy.argmax(logits, axis=-1)
-    return metric.compute(predictions=predictions, references=labels)
-
-'''
 def compute_metrics(eval_pred):
     """Custom metrics for multi-label classification."""
     logits, labels = eval_pred
@@ -39,11 +29,10 @@ def compute_metrics(eval_pred):
     f1 = 2 * (precision * recall) / (precision + recall + 1e-10)
 
     return {
-        'eval_precision': precision.item(),
-        'eval_recall': recall.item(),
-        'eval_f1': f1.item()
+        'precision': precision.item(),
+        'recall': recall.item(),
+        'f1': f1.item()
     }
-'''
 
 def predict(note, model, dataset, compute_device, threshold=0.5):
     """
@@ -166,11 +155,7 @@ if __name__ == '__main__':
         weight_decay=0.01,
         logging_dir='./logs',
         logging_steps=1,
-        eval_strategy="epoch" if val_dataset else "no",
-        save_strategy="epoch",
-        load_best_model_at_end=True if val_dataset else False,
-        metric_for_best_model='f1',
-        dataloader_num_workers=4,
+        eval_strategy="epoch"
     )
 
     trainer = Trainer(
