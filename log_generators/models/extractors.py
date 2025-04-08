@@ -91,7 +91,7 @@ def dataset_to_hf_dataset(names, chunk_sizes):
 
     for name, chunk_size in zip(names, chunk_sizes):
         dataset = USSEnterpriseSystemsDataset(
-            generator=USSEnterpriseDiagnosticGenerator(refine_with_deepseek=False),
+            generator=USSEnterpriseDiagnosticGenerator(refine_with_deepseek=True),
             config = uss_enterprise_systems_info,
             chunk_size=chunk_size
         )
