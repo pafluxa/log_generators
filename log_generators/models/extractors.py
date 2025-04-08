@@ -28,11 +28,11 @@ def compute_metrics(eval_pred):
     recall = numpy.logical_and(preds, labels).sum() / labels.sum()
     f1 = 2 * (precision * recall) / (precision + recall + 1e-10)
 
-    return {
-        'precision': precision.item(),
-        'recall': recall.item(),
-        'f1': f1.item()
-    }
+    return {'precision': precision.item()}
+
+#        'recall': recall.item(),
+#        'f1': f1.item()
+#    }
 
 def predict(note, model, label_encoder, tokenizer, compute_device, threshold=0.5):
     """
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     base_model_name = 'bert-base-uncased'
     compute_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    n_systems, label_names, label_encoder, tokenizer = dataset_to_hf_dataset(["train", "test"], [1024, 128])
+    n_systems, label_names, label_encoder, tokenizer = dataset_to_hf_dataset(["train", "test"], [128, 32])
     
     dataset = load_dataset("parquet", 
                 data_dir="./tokenized/uss_enterprise_logs/", 
