@@ -176,7 +176,7 @@ if __name__ == '__main__':
 
     """Fine-tune the model with LoRA."""
     training_args = TrainingArguments(
-        label_names=label_names,
+        label_names=["labels"],
         output_dir='./results',
         num_train_epochs=1,
         per_device_train_batch_size=4,
@@ -193,8 +193,6 @@ if __name__ == '__main__':
         eval_dataset=eval_dataset,
         compute_metrics=compute_metrics,
     )
-    for batch in trainer.get_eval_dataloader(eval_dataset):
-        break
     
     trainer.train()
 
