@@ -63,6 +63,8 @@ def predict(note, model, label_encoder, tokenizer, compute_device, threshold=0.5
         logits = outputs.logits
         probs = torch.sigmoid(logits).cpu().numpy()[0]
 
+    print(probs)
+
     # Get predictions above threshold
     above_threshold = probs > threshold
     labels = numpy.zeros_like(probs, dtype=numpy.int64)
@@ -71,7 +73,7 @@ def predict(note, model, label_encoder, tokenizer, compute_device, threshold=0.5
     predicted_labels = label_encoder.inverse_transform(labels)
 
     return {
-        'systems': predicted_labels,
+        'systems': predicted_labels.ravel(),
         'raw_output': probs
     }
 
