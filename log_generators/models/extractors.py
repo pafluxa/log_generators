@@ -63,8 +63,6 @@ def predict(note, model, label_encoder, tokenizer, compute_device, threshold=0.5
         logits = outputs.logits
         probs = torch.sigmoid(logits).cpu().numpy()[0]
 
-    print(probs)
-
     # Get predictions above threshold
     above_threshold = probs > threshold
     labels = numpy.zeros_like(probs, dtype=numpy.int64)
@@ -171,7 +169,7 @@ if __name__ == '__main__':
     trainer.train()
 
     # 5. Predict
-    test_note = "Heisenberg compensator degradation with plasma eddies"
+    test_note = "Dilithium matrix vectors out of range with indications of backwards antimatter flow."
     prediction = predict(test_note, model, label_encoder, tokenizer, compute_device)
 
     print("Diagnostic Analysis:")
