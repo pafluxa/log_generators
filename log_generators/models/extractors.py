@@ -18,18 +18,40 @@ from sklearn.preprocessing import OrdinalEncoder
 from log_generators.data.dataset import USSEnterpriseSystemsDataset
 from log_generators.generators.uss_enterprise import USSEnterpriseDiagnosticGenerator
 
-def compute_metrics(p: EvalPrediction):
-    """Custom metrics for multi-label classification."""
-    logits = p.predictions
-    # logits, labels = eval_pred.predictions, eval_pred.label_ids
-    preds = (torch.sigmoid(torch.tensor(logits)) > 0.5).int().numpy()
-    labels = p.label_ids
-    # Calculate precision, recall, F1
-    precision = numpy.logical_and(preds, labels).sum() / preds.sum()
-    recall = numpy.logical_and(preds, labels).sum() / labels.sum()
-    f1 = 2 * (precision * recall) / (precision + recall + 1e-10)
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-    return {'precision': precision}
+def compute_metrics(pred):
+    labels = pred.label_ids
+    logits = pred.predictions
+    preds = (torch.sigmoid(torch.tensor(logits)) > 0.5).int().numpy()
+    
+    # Calculate accuracy
+    accuracy = accuracy_score(labels, preds)
+
+   # Calculate precision, recall, and F1-score
+    precision = precision_score(labels, preds, average='weighted')
+    recall = recall_score(labels, preds, average='weighted')
+    f1 = f1_score(labels, preds, average='weighted')
+    
+    return {
+        'accuracy': accuracy,
+        'precision': precision,
+        'recall': recall,
+        'f1': f1
+    }
+
+# def compute_metrics(p: EvalPrediction):
+#     """Custom metrics for multi-label classification."""
+#     logits = p.predictions
+#     # logits, labels = eval_pred.predictions, eval_pred.label_ids
+#     preds = (torch.sigmoid(torch.tensor(logits)) > 0.5).int().numpy()
+#     labels = p.label_ids
+#     # Calculate precision, recall, F1
+#     precision = numpy.logical_and(preds, labels).sum() / preds.sum()
+#     recall = numpy.logical_and(preds, labels).sum() / labels.sum()
+#     f1 = 2 * (precision * recall) / (precision + recall + 1e-10)
+
+#     return {'precision': precision}
 
 #        'recall': recall.item(),
 #        'f1': f1.item()
