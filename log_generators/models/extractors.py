@@ -64,6 +64,7 @@ def predict(note, model, dataset, compute_device, threshold=0.5):
     above_threshold = probs > threshold
     labels = numpy.zeros_like(probs, dtype=numpy.int64)
     labels[above_threshold] = 1
+    labels = numpy.expand_dims(labels, axis=0)
     predicted_labels = dataset.label_encoder.inverse_transform(labels)
 
     return {
@@ -83,7 +84,7 @@ if __name__ == '__main__':
     uss_enterprise_systems_info = config
 
     dataset = USSEnterpriseSystemsDataset(
-        generator=USSEnterpriseDiagnosticGenerator(refine_with_deepseek=True),
+        generator=USSEnterpriseDiagnosticGenerator(refine_with_deepseek=False),
         config = uss_enterprise_systems_info,
     ) 
     train_dataset, val_dataset = dataset, None
