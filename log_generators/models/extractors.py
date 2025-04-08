@@ -68,13 +68,14 @@ def predict(note, model, label_encoder, tokenizer, compute_device, threshold=0.5
     # Get predictions above threshold
     above_threshold = probs > threshold
     labels = numpy.zeros_like(probs, dtype=numpy.int64)
-    labels[above_threshold] = 1
+    labels = labels[above_threshold]
+    labels_probs = probs[above_threshold]
     labels = numpy.expand_dims(labels, axis=0)
     predicted_labels = label_encoder.inverse_transform(labels)
 
     return {
-        'systems': predicted_labels.ravel(),
-        'raw_output': probs
+        'systems': predicted_labels,
+        'raw_output': labels_probs
     }
 
 def dataset_to_hf_dataset(names):
