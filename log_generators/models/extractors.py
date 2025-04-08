@@ -34,7 +34,7 @@ def compute_metrics(eval_pred):
         'f1': f1.item()
     }
 
-def predict(note, model, dataset, compute_device, threshold=0.5):
+def predict(note, model, label_encoder, tokenizer, compute_device, threshold=0.5):
     """
     Predict system/subsystem probabilities for a diagnostic note.
 
@@ -49,7 +49,7 @@ def predict(note, model, dataset, compute_device, threshold=0.5):
         }
     """
     # Tokenize input
-    inputs = dataset.tokenizer(
+    inputs = tokenizer(
         note,
         truncation=True,
         padding=True,
@@ -68,14 +68,14 @@ def predict(note, model, dataset, compute_device, threshold=0.5):
     labels = numpy.zeros_like(probs, dtype=numpy.int64)
     labels[above_threshold] = 1
     labels = numpy.expand_dims(labels, axis=0)
-    predicted_labels = dataset.label_encoder.inverse_transform(labels)
+    predicted_labels = label_encoder.inverse_transform(labels)
 
     return {
         'systems': predicted_labels,
         'raw_output': probs
     }
 
-def dataset_to_hf_dataset(name):
+def dataset_to_hf_dataset(names):
     
     max_length = 512
      
@@ -89,35 +89,35 @@ def dataset_to_hf_dataset(name):
     )
     n_systems = dataset.n_labels
 
-    t1 = []
-    t2 = []
-    t3 = []
-    for input_ids, attn_mask, enc_lbl in dataset:
-        t1.append([input_ids.numpy(),])
-        t2.append([attn_mask.numpy(),])
-        t3.append([enc_lbl.numpy(),])
-    c1 = pa.chunked_array(t1)
-    c2 = pa.chunked_array(t2)
-    c3 = pa.chunked_array(t3)
-    patab_data = pa.table(
-        [c1, c2, c3], 
-        names=['input_ids', 'attention_mask', 'labels'],
-    )
-    papq.write_table(
-        patab_data, 
-        f"./tokenized/uss_enterprise_logs/{name}.parquet", 
-        compression=None
-    )
+    for name in names:
+        t1 = []
+        t2 = []
+        t3 = []
+        for input_ids, attn_mask, enc_lbl in dataset:
+            t1.append([input_ids.numpy(),])
+            t2.append([attn_mask.numpy(),])
+            t3.append([enc_lbl.numpy(),])
+        c1 = pa.chunked_array(t1)
+        c2 = pa.chunked_array(t2)
+        c3 = pa.chunked_array(t3)
+        patab_data = pa.table(
+            [c1, c2, c3], 
+            names=['input_ids', 'attention_mask', 'labels'],
+        )
+        papq.write_table(
+            patab_data, 
+            f"./tokenized/uss_enterprise_logs/{name}.parquet", 
+            compression=None
+        )
     
-    return n_systems, dataset.labels_as_txt
+    return n_systems, dataset.labels_as_txt, dataset.label_encoder, dataset.tokenizer
 
 if __name__ == '__main__':
    
     base_model_name = 'bert-base-uncased'
     compute_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    n_systems, label_names = dataset_to_hf_dataset("train")
-    n_systems, label_names = dataset_to_hf_dataset("test")
+    n_systems, label_names, label_encoder, tokenizer = dataset_to_hf_dataset(["train", "test"])
     
     dataset = load_dataset("parquet", 
                 data_dir="./tokenized/uss_enterprise_logs/", 
@@ -148,10 +148,10 @@ if __name__ == '__main__':
     training_args = TrainingArguments(
         label_names=label_names,
         output_dir='./results',
-        num_train_epochs=5,
+        num_train_epochs=1,
         per_device_train_batch_size=4,
         per_device_eval_batch_size=4,
-        warmup_steps=100,
+        warmup_steps=10,
         weight_decay=0.01,
         logging_dir='./logs',
         logging_steps=1,
@@ -170,7 +170,7 @@ if __name__ == '__main__':
 
     # 5. Predict
     test_note = "Heisenberg compensator degradation with plasma eddies"
-    prediction = predict(test_note, model, dataset, compute_device)
+    prediction = predict(test_note, model, label_encoder, tokenizer, compute_device)
 
     print("Diagnostic Analysis:")
     print(f"Note: {test_note}")
