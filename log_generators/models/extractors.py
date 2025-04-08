@@ -180,10 +180,8 @@ if __name__ == '__main__':
         per_device_eval_batch_size=4,
         warmup_steps=4,
         weight_decay=0.001,
-        logging_dir='./logs',
-        logging_steps=10,
-        eval_strategy="steps",
-        eval_steps=10,
+        evaluation_strategy="epoch",
+        eval_strategy="epoch",
     )
 
     trainer = Trainer(
