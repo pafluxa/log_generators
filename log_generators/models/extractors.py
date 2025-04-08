@@ -7,7 +7,7 @@ import pyarrow.parquet as papq
 
 from datasets import Dataset, load_dataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-from transformers import TrainingArguments, Trainer
+from transformers import TrainingArguments, Trainer, EvalPrediction
 from peft import LoraConfig, get_peft_model, TaskType
 
 import numpy
@@ -18,11 +18,12 @@ from sklearn.preprocessing import OrdinalEncoder
 from log_generators.data.dataset import USSEnterpriseSystemsDataset
 from log_generators.generators.uss_enterprise import USSEnterpriseDiagnosticGenerator
 
-def compute_metrics(eval_pred):
+def compute_metrics(p: EvalPrediction):
     """Custom metrics for multi-label classification."""
-    logits, labels = eval_pred.predictions, eval_pred.label_ids
+    logits = p.predictions[0] if isinstance(p.predictions, tuple) else p.predictions
+    # logits, labels = eval_pred.predictions, eval_pred.label_ids
     preds = (torch.sigmoid(torch.tensor(logits)) > 0.5).int().numpy()
-
+    labels = p.label_ids
     # Calculate precision, recall, F1
     precision = numpy.logical_and(preds, labels).sum() / preds.sum()
     recall = numpy.logical_and(preds, labels).sum() / labels.sum()
@@ -153,12 +154,12 @@ if __name__ == '__main__':
         label_names=label_names,
         output_dir='./results',
         num_train_epochs=1,
-        per_device_train_batch_size=8,
-        per_device_eval_batch_size=8,
-        warmup_steps=40,
+        per_device_train_batch_size=4,
+        per_device_eval_batch_size=4,
+        warmup_steps=4,
         weight_decay=0.001,
         logging_dir='./logs',
-        logging_steps=1,
+        logging_steps=10,
         eval_strategy="steps",
         eval_steps=10,
     )
