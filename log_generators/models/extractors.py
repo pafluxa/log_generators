@@ -20,7 +20,7 @@ from log_generators.generators.uss_enterprise import USSEnterpriseDiagnosticGene
 
 def compute_metrics(eval_pred):
     """Custom metrics for multi-label classification."""
-    logits, labels = eval_pred
+    logits, labels = eval_pred.predictions, eval_pred.label_ids
     preds = (torch.sigmoid(torch.tensor(logits)) > 0.5).int().numpy()
 
     # Calculate precision, recall, F1
@@ -79,21 +79,21 @@ def predict(note, model, label_encoder, tokenizer, compute_device, threshold=0.5
         'sorting_index': sorting_idx
     }
 
-def dataset_to_hf_dataset(names):
+def dataset_to_hf_dataset(names, chunk_sizes):
     
     max_length = 512
-     
     with open('log_generators/configs/uss_enterprise.json', 'r') as f:
         config = json.loads(f.read())
     uss_enterprise_systems_info = config
 
-    dataset = USSEnterpriseSystemsDataset(
-        generator=USSEnterpriseDiagnosticGenerator(refine_with_deepseek=False),
-        config = uss_enterprise_systems_info,
-    )
-    n_systems = dataset.n_labels
+    for name, chunk_size in zip(names, chunk_sizes):
+        dataset = USSEnterpriseSystemsDataset(
+            generator=USSEnterpriseDiagnosticGenerator(refine_with_deepseek=False),
+            config = uss_enterprise_systems_info,
+            chunk_size=chunk_size
+        )
+        n_systems = dataset.n_labels
 
-    for name in names:
         t1 = []
         t2 = []
         t3 = []
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     base_model_name = 'bert-base-uncased'
     compute_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
-    n_systems, label_names, label_encoder, tokenizer = dataset_to_hf_dataset(["train", "test"])
+    n_systems, label_names, label_encoder, tokenizer = dataset_to_hf_dataset(["train", "test"], [1024, 128])
     
     dataset = load_dataset("parquet", 
                 data_dir="./tokenized/uss_enterprise_logs/", 
