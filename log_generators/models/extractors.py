@@ -73,8 +73,9 @@ def predict(note, model, label_encoder, tokenizer, compute_device, threshold=0.5
     sorting_idx = numpy.argsort(probs)
     
     return {
-        'systems': predicted_labels[0][sorting_idx],
-        'probs': probs[sorting_idx]
+        'systems': predicted_labels[0],
+        'probabilities': probs[sorting_idx],
+        'sorting_index': sorting_idx
     }
 
 def dataset_to_hf_dataset(names):
@@ -173,8 +174,9 @@ if __name__ == '__main__':
     # 5. Predict
     test_note = "Dilithium matrix vectors out of range with indications of backwards antimatter flow."
     prediction = predict(test_note, model, label_encoder, tokenizer, compute_device)
+    systems, probs = prediction['systems'], prediction['probabilities']
 
     print("Diagnostic Analysis:")
     print(f"Note: {test_note}")
-    for system, prob in zip(prediction['systems'], prediction['probs']):
-        print(f"- {system}: {prob:.2%} probability")
+    for idx in prediction['sorting_index']:
+        print(f"- {systems[idx]}: {probs[idx]:.2%} probability")
