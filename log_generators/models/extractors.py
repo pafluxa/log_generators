@@ -70,11 +70,12 @@ def predict(note, model, label_encoder, tokenizer, compute_device, threshold=0.5
     labels = numpy.expand_dims(labels, axis=0)
     predicted_labels = label_encoder.inverse_transform(labels)
 
+    probs = probs[above_threshold]
     sorting_idx = numpy.argsort(probs)
     
     return {
         'systems': predicted_labels[0],
-        'probabilities': probs[sorting_idx],
+        'probabilities': probs,
         'sorting_index': sorting_idx
     }
 
