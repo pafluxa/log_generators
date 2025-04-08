@@ -73,7 +73,7 @@ def predict(note, model, label_encoder, tokenizer, compute_device, threshold=0.5
     predicted_labels = label_encoder.inverse_transform(labels)
 
     return {
-        'systems': predicted_labels,
+        'systems': predicted_labels[0],
         'probs': probs
     }
 
