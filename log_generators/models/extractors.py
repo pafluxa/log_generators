@@ -20,7 +20,7 @@ from log_generators.generators.uss_enterprise import USSEnterpriseDiagnosticGene
 
 def compute_metrics(p: EvalPrediction):
     """Custom metrics for multi-label classification."""
-    logits = p.predictions[0] if isinstance(p.predictions, tuple) else p.predictions
+    logits = p.predictions
     # logits, labels = eval_pred.predictions, eval_pred.label_ids
     preds = (torch.sigmoid(torch.tensor(logits)) > 0.5).int().numpy()
     labels = p.label_ids
@@ -29,7 +29,7 @@ def compute_metrics(p: EvalPrediction):
     recall = numpy.logical_and(preds, labels).sum() / labels.sum()
     f1 = 2 * (precision * recall) / (precision + recall + 1e-10)
 
-    return {'precision': precision.item()}
+    return {'precision': precision}
 
 #        'recall': recall.item(),
 #        'f1': f1.item()
