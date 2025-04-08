@@ -70,9 +70,11 @@ def predict(note, model, label_encoder, tokenizer, compute_device, threshold=0.5
     labels = numpy.expand_dims(labels, axis=0)
     predicted_labels = label_encoder.inverse_transform(labels)
 
+    sorting_idx = numpy.argsort(probs)
+    
     return {
-        'systems': predicted_labels[0],
-        'probs': probs
+        'systems': predicted_labels[0][sorting_idx],
+        'probs': probs[sorting_idx]
     }
 
 def dataset_to_hf_dataset(names):
