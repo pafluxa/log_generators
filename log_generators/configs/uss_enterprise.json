@@ -1,0 +1,338 @@
+{
+    "warp core": {
+        "phrases": ["unstable %s in %s", "%s fluctuations detected"],
+        "subsystems": ["plasma conduit", "dilithium matrix", "antimatter flow"],
+        "units": ["cochranes", "terawatts", "milliisotons"],
+        "fails": ["impulse drive", "sensors", "artificial gravity"]
+    },
+    "transporter buffer": {
+        "phrases": ["%s pattern degradation", "quantum %s detected"],
+        "subsystems": ["Heisenberg compensator", "pattern enhancer", "phase discriminator"],
+        "units": ["quantum%", "microrems"],
+        "fails": ["replicators", "holodeck safety"]
+    },
+    "deflector dish": {
+        "phrases": ["%s polarization loss", "%s frequency drift"],
+        "subsystems": ["graviton emitter", "metaphasic shielding", "particle deflector"],
+        "units": ["gigajoules", "nanometers"],
+        "fails": ["navigation", "shield grid"]
+    },
+    "impulse drive": {
+        "phrases": ["%s manifold %s", "plasma %s in %s chamber"],
+        "subsystems": ["fusion reactors", "driver coils", "magnetic constrictors"],
+        "units": ["terawatts", "cochranes", "newtons"],
+        "fails": ["thrusters", "power distribution"]
+    },
+    "shield grid": {
+        "phrases": ["%s modulation failure", "%s frequency %s"],
+        "subsystems": ["graviton generators", "phase variance emitters", "multiphasic nodes"],
+        "units": ["gigahertz", "isotons", "percent"],
+        "fails": ["secondary hull plating", "deflector dish"]
+    },
+    "structural integrity": {
+        "phrases": ["%s stress fractures", "%s field %s"],
+        "subsystems": ["duranium grid", "polarized plating", "ablative generators"],
+        "units": ["GPa", "newtons/sq.m"],
+        "fails": ["inertial dampers", "atmospheric containment"]
+    },
+    "atmospheric containment": {
+        "phrases": ["%s dropping", "%s pressure %s"],
+        "subsystems": ["pressure membranes", "primary hull", "secondary hull plating"],
+        "units": ["GPa", "newtons/sq.m"],
+        "fails": ["secondary hull plating"]
+    },
+    "computer core": {
+        "phrases": ["%s processing %s", "memory %s fragmentation"],
+        "subsystems": ["isolinear chips", "optical data network", "quantum processors"],
+        "units": ["gigaquads", "nanoseconds", "petaflops"],
+        "fails": ["ops systems", "security protocols"]
+    },
+    "sensors": {
+        "phrases": ["%s calibration %s", "%s interference %s"],
+        "subsystems": ["tachyon detectors", "gravimetric scanners", "subspace beacons"],
+        "units": ["arcseconds", "parsecs", "light-years"],
+        "fails": ["navigation", "tactical systems"]
+    },
+    "coolant system": {
+        "phrases": ["%s viscosity anomaly", "thermal %s failure"],
+        "subsystems": ["deuterium pumps", "heat exchangers", "emergency vents"],
+        "units": ["kelvins", "liters/min"],
+        "fails": ["warp core", "environmental"]
+    },
+    "environmental": {
+        "phrases": ["%s controls %s", "atmospheric %s collapse"],
+        "subsystems": ["oxygen mixers", "thermal regulators", "pressure membranes"],
+        "units": ["ppm", "pascals", "CFM"],
+        "fails": ["life support", "crew quarters"]
+    },
+    "navigation": {
+        "phrases": ["%s alignment %s", "stellar %s drift"],
+        "subsystems": ["astrometric processors", "warp field calculators", "impulse vectoring"],
+        "units": ["arcminutes", "parsecs", "cubic Warp"],
+        "fails": ["helm control", "sensor palette"]
+    },
+    "power distribution": {
+        "phrases": ["%s relay %s", "EPS %s overload"],
+        "subsystems": ["plasma conduits", "electro-inductors", "capacitor banks"],
+        "units": ["terawatts", "volts", "ohms"],
+        "fails": ["warp core", "auxiliary power"]
+    },
+    "medical": {
+        "phrases": ["%s scanner %s", "biofilter %s overload"],
+        "subsystems": ["tricorder arrays", "hypospray synthesizers", "surgical holograms"],
+        "units": ["ccs", "millisieverts", "microbes"],
+        "fails": ["sickbay", "quarantine fields"]
+    },
+    "quarantine fields": {
+        "phrases": ["%s containment %s", "force %s degradation"],
+        "subsystems": ["level-10 forcefields", "bio-dampers", "decon emitters"],
+        "units": ["microbes", "quads", "sterilization%"],
+        "fails": ["security protocols", "environmental"]
+    },
+    "decon protocols": {
+        "phrases": ["%s sequence %s", "sterilization %s failure"],
+        "subsystems": ["antimicrobial fields", "radiation sweepers", "nanoprobe scrubbers"],
+        "units": ["rads", "microbes", "decon%"],
+        "fails": ["medical", "crew quarters"]
+    },
+    "bio-neural gel packs": {
+        "phrases": ["%s synaptic %s", "neural %s degradation"],
+        "subsystems": ["isolinear nodes", "neuro-electric pathways", "protein matrices"],
+        "units": ["quads", "synapses/sec", "nanobots"],
+        "fails": ["computer core", "medical"]
+    },
+    "phaser banks": {
+        "phrases": ["%s capacitor %s", "%s emitter %s"],
+        "subsystems": ["nadion generators", "phase coils", "energy relays"],
+        "units": ["megajoules", "volts", "amperes"],
+        "fails": ["targeting sensors", "power core"]
+    },
+    "torpedo launchers": {
+        "phrases": ["%s loading %s", "%s guidance %s"],
+        "subsystems": ["antimatter pods", "magnetic rails", "targeting scanners"],
+        "units": ["isotons", "gauss", "radians"],
+        "fails": ["weapons locker", "defensive systems"]
+    },
+    "tactical systems": {
+        "phrases": ["%s algorithm %s", "threat %s overload"],
+        "subsystems": ["predictive matrices", "weapon interlocks", "shield modulation"],
+        "units": ["T-flops", "nanoseconds", "targets"],
+        "fails": ["phaser banks", "defensive systems"]
+    },
+    "defensive systems": {
+        "phrases": ["%s protocol %s", "countermeasure %s failure"],
+        "subsystems": ["electronic warfare", "point-defense", "cloak detection"],
+        "units": ["gigahertz", "decibels", "interception%"],
+        "fails": ["shield grid", "tactical systems"]
+    },
+    "weapons locker": {
+        "phrases": ["%s containment %s", "security %s breach"],
+        "subsystems": ["phaser banks", "photon torpedoes", "security forcefields"],
+        "units": ["units", "security level", "authorization%"],
+        "fails": ["security protocols", "armory"]
+    },
+    "security protocols": {
+        "phrases": ["%s override %s", "access %s violation"],
+        "subsystems": ["biometric scanners", "forcefield emitters", "intrusion detection"],
+        "units": ["security level", "unauthorized accesses", "breaches"],
+        "fails": ["computer core", "bridge security"]
+    },
+    "bussard collectors": {
+        "phrases": ["%s hydrogen %s", "interstellar %s contamination"],
+        "subsystems": ["ram-scoop fields", "particle filters", "magnetic conduits"],
+        "units": ["grams/sec", "isotons", "gauss"],
+        "fails": ["warp core", "fuel processing"]
+    },
+    "tractor beam": {
+        "phrases": ["%s emitter %s", "gravimetric %s distortion"],
+        "subsystems": ["focusing coils", "spatial projectors", "attractor arrays"],
+        "units": ["newtons", "gravons", "picochranes"],
+        "fails": ["deflector dish", "inertial dampers"]
+    },
+    "replicators": {
+        "phrases": ["%s pattern %s", "matter %s corruption"],
+        "subsystems": ["quantum templates", "molecular assemblers", "waste reclamators"],
+        "units": ["grams/sec", "quads", "atom%"],
+        "fails": ["transporter buffer", "crew mess"]
+    },
+    "holodeck safety": {
+        "phrases": ["%s protocol %s", "simulation %s failure"],
+        "subsystems": ["photonic buffers", "matter replicators", "morphogenic projectors"],
+        "units": ["quads", "kilobytes", "nanobots"],
+        "fails": ["life support", "computer core"]
+    },
+    "inertial dampers": {
+        "phrases": ["%s matrix %s", "%s compensation %s"],
+        "subsystems": ["graviton emitters", "acceleration buffers", "gyroscopic stabilizers"],
+        "units": ["Gs", "newtons", "pascals"],
+        "fails": ["artificial gravity", "structural integrity"]
+    },
+    "artificial gravity": {
+        "phrases": ["%s grid %s", "gravimetric %s fluctuations"],
+        "subsystems": ["gravity plates", "inertial compensators", "mass sensors"],
+        "units": ["Gs", "newtons", "pascals"],
+        "fails": ["inertial dampers", "structural integrity"]
+    },
+    "thrusters": {
+        "phrases": ["%s vector %s", "maneuvering %s failure"],
+        "subsystems": ["ion pods", "reaction control", "vernier adjustments"],
+        "units": ["newtons", "degrees/sec", "impulse%"],
+        "fails": ["navigation", "structural integrity"]
+    },
+    "long range comms": {
+        "phrases": ["%s subspace %s", "carrier %s distortion"],
+        "subsystems": ["hyperwave transceivers", "quasar amplifiers", "antique radio"],
+        "units": ["warp-factors", "parsecs", "gigaquads"],
+        "fails": ["bridge module", "emergency beacons"]
+    },
+    "warp field stabilizers": {
+        "phrases": ["%s geometry %s", "subspace %s collapse"],
+        "subsystems": ["graviton emitters", "quantum flux regulators", "manifold projectors"],
+        "units": ["cochranes", "millicochranes", "warp-factors"],
+        "fails": ["navigational sensors", "impulse drive"]
+    },
+    "emergency medical hologram": {
+        "phrases": ["%s matrix %s", "holo-%s degradation"],
+        "subsystems": ["photonic processors", "medical databases", "ethical subroutines"],
+        "units": ["gigaquads", "nanobots", "bedside%"],
+        "fails": ["sickbay", "computer core"]
+    },
+    "sensor palette": {
+        "phrases": ["%s calibration %s", "multi-%s interference"],
+        "subsystems": ["tachyon beams", "gravimetric arrays", "bio-scanners"],
+        "units": ["arcminutes", "terawatts", "picoamps"],
+        "fails": ["science labs", "tactical systems"]
+    },
+    "secondary hull plating": {
+        "phrases": ["%s microfractures %s", "ablative %s failure"],
+        "subsystems": ["tritanium layers", "polarized mesh", "metaphasic coating"],
+        "units": ["centimeters", "newtons", "GPa"],
+        "fails": ["primary hull", "shield modulation"]
+    },
+    "auxiliary power": {
+        "phrases": ["%s conduit %s", "emergency %s drain"],
+        "subsystems": ["fusion generators", "capacitor banks", "EPS taps"],
+        "units": ["megawatts", "joules", "volts"],
+        "fails": ["life support", "emergency lighting"]
+    },
+    "quantum torpedo bay": {
+        "phrases": ["%s loading %s", "warhead %s instability"],
+        "subsystems": ["zero-point chambers", "spatial warheads", "launch rails"],
+        "units": ["isotons", "quantum%", "gigaquads"],
+        "fails": ["weapons locker", "defensive systems"]
+    },
+    "life support": {
+        "phrases": ["%s failure in %s", "%s malfunction detected"],
+        "subsystems": ["atmosphere processors", "CO2 scrubbers", "nitrogen regulators"],
+        "units": ["ppm", "CFM", "BTUs"],
+        "fails": ["crew quarters", "medical"]
+    },
+    "crew quarters": {
+        "phrases": ["%s environment %s", "habitat %s failure"],
+        "subsystems": ["life support nodes", "thermal regulation", "artificial gravity"],
+        "units": ["comfort%", "degrees", "humidity%"],
+        "fails": ["environmental", "medical"]
+    },
+    "ops systems": {
+        "phrases": ["%s protocol %s", "operational %s failure"],
+        "subsystems": ["command interfaces", "priority channels", "alert systems"],
+        "units": ["priority level", "alerts", "systems online%"],
+        "fails": ["computer core", "bridge module"]
+    },
+    "science labs": {
+        "phrases": ["%s experiment %s", "research %s containment"],
+        "subsystems": ["containment fields", "sensor arrays", "analysis computers"],
+        "units": ["experiments", "data quads", "containment%"],
+        "fails": ["sensors", "computer core"]
+    },
+    "emergency lighting": {
+        "phrases": ["%s circuit %s", "backup %s failure"],
+        "subsystems": ["glow panels", "power relays", "battery backups"],
+        "units": ["lumens", "volts", "hours"],
+        "fails": ["auxiliary power", "environmental"]
+    },
+    "emergency forcefields": {
+        "phrases": ["%s containment %s", "emergency %s failure"],
+        "subsystems": ["field emitters", "power nodes", "containment projectors"],
+        "units": ["field strength", "containment%", "watts"],
+        "fails": ["structural integrity", "power distribution"]
+    },
+    "sickbay": {
+        "phrases": ["%s systems %s", "medical %s offline"],
+        "subsystems": ["biobeds", "surgical bay", "diagnostic scanners"],
+        "units": ["patients", "ccs", "procedures"],
+        "fails": ["medical", "emergency medical hologram"]
+    },
+    "helm control": {
+        "phrases": ["%s response %s", "flight %s failure"],
+        "subsystems": ["control interfaces", "navigational links", "thruster controls"],
+        "units": ["response time", "latency", "accuracy%"],
+        "fails": ["navigation", "computer core"]
+    },
+    "primary hull": {
+        "phrases": ["%s integrity %s", "structural %s compromised"],
+        "subsystems": ["tritanium alloy", "support beams", "emergency seals"],
+        "units": ["GPa", "stress factor", "integrity%"],
+        "fails": ["structural integrity", "atmospheric containment"]
+    },
+    "bridge module": {
+        "phrases": ["%s command %s", "primary %s failure"],
+        "subsystems": ["command chairs", "ops station", "tactical displays"],
+        "units": ["priority level", "systems online%", "alerts"],
+        "fails": ["computer core", "security protocols"]
+    },
+    "emergency beacons": {
+        "phrases": ["%s signal %s", "distress %s failure"],
+        "subsystems": ["subspace transmitters", "power cells", "antenna array"],
+        "units": ["lightyears", "watts", "signal strength"],
+        "fails": ["long range comms", "auxiliary power"]
+    },
+    "fuel processing": {
+        "phrases": ["%s refinement %s", "deuterium %s failure"],
+        "subsystems": ["slush processors", "purification grids", "storage tanks"],
+        "units": ["liters/min", "purity%", "slush density"],
+        "fails": ["warp core", "impulse drive"]
+    },
+    "armory": {
+        "phrases": ["%s security %s", "weapons %s breach"],
+        "subsystems": ["phaser racks", "security forcefields", "access controls"],
+        "units": ["weapons", "security level", "breaches"],
+        "fails": ["security protocols", "weapons locker"]
+    },
+    "bridge security": {
+        "phrases": ["%s protocols %s", "bridge %s compromised"],
+        "subsystems": ["forcefields", "security teams", "intrusion detection"],
+        "units": ["security level", "breaches", "response time"],
+        "fails": ["security protocols", "computer core"]
+    },
+    "crew mess": {
+        "phrases": ["%s systems %s", "food %s failure"],
+        "subsystems": ["replicator terminals", "dining areas", "waste reclamation"],
+        "units": ["meals", "nutrition%", "waste%"],
+        "fails": ["replicators", "environmental"]
+    },
+    "shield modulation": {
+        "phrases": ["%s frequency %s", "deflector %s inversion"],
+        "subsystems": ["multiphasic emitters", "graviton projectors", "harmonic dampers"],
+        "units": ["gigahertz", "isotons", "phase%"],
+        "fails": ["deflector dish", "tactical systems"]
+    },
+    "targeting sensors": {
+        "phrases": ["%s lock %s", "weapons %s failure"],
+        "subsystems": ["phaser targeting", "torpedo guidance", "threat analysis"],
+        "units": ["accuracy%", "response time", "targets"],
+        "fails": ["tactical systems", "sensors"]
+    },
+    "power core": {
+        "phrases": ["%s output %s", "main %s fluctuation"],
+        "subsystems": ["plasma conduits", "energy regulators", "EPS taps"],
+        "units": ["terawatts", "volts", "stability%"],
+        "fails": ["warp core", "auxiliary power"]
+    },
+    "navigational sensors": {
+        "phrases": ["%s alignment %s", "stellar %s drift"],
+        "subsystems": ["astrometric scanners", "warp field sensors", "impulse tracking"],
+        "units": ["arcminutes", "parsecs", "warp factor"],
+        "fails": ["navigation", "sensors"]
+    }
+}
