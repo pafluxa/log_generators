@@ -83,7 +83,6 @@ about how things tend to all break at once.
 Notes:
 
 """
-    
         self.faker = Faker()
         np.random.seed()
 

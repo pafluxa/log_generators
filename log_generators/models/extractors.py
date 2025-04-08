@@ -2,7 +2,10 @@ import numpy
 import torch
 import json
 
-from datasets import Dataset
+import pyarrow as pa
+import pyarrow.parquet as papq
+
+from datasets import Dataset, load_dataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from transformers import TrainingArguments, Trainer
 from peft import LoraConfig, get_peft_model, TaskType
@@ -72,28 +75,62 @@ def predict(note, model, dataset, compute_device, threshold=0.5):
         'raw_output': probs
     }
 
-
-if __name__ == '__main__':
-   
-    base_model_name = 'bert-base-uncased'
+def dataset_to_hf_dataset(name):
+    
+    max_length = 512
      
-    compute_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
     with open('log_generators/configs/uss_enterprise.json', 'r') as f:
         config = json.loads(f.read())
     uss_enterprise_systems_info = config
 
-    torch_dataset = USSEnterpriseSystemsDataset(
+    dataset = USSEnterpriseSystemsDataset(
         generator=USSEnterpriseDiagnosticGenerator(refine_with_deepseek=False),
         config = uss_enterprise_systems_info,
     )
-    dataset = Dataset(torch_dataset) 
-    train_dataset, val_dataset = dataset, None
+    n_systems = dataset.n_labels
+
+    t1 = []
+    t2 = []
+    t3 = []
+    for input_ids, attn_mask, enc_lbl in dataset:
+        t1.append([input_ids.numpy(),])
+        t2.append([attn_mask.numpy(),])
+        t3.append([enc_lbl.numpy(),])
+    c1 = pa.chunked_array(t1)
+    c2 = pa.chunked_array(t2)
+    c3 = pa.chunked_array(t3)
+    patab_data = pa.table(
+        [c1, c2, c3], 
+        names=['input_ids', 'attention_mask', 'labels'],
+    )
+    papq.write_table(
+        patab_data, 
+        f"./tokenized/uss_enterprise_logs/{name}.parquet", 
+        compression=None
+    )
     
+    return n_systems, dataset.labels_as_txt
+
+if __name__ == '__main__':
+   
+    base_model_name = 'bert-base-uncased'
+    compute_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
+    n_systems, label_names = dataset_to_hf_dataset("train")
+    n_systems, label_names = dataset_to_hf_dataset("test")
+    
+    dataset = load_dataset("parquet", 
+                data_dir="./tokenized/uss_enterprise_logs/", 
+                data_files={
+                    'train': 'train.parquet',
+                    'test': 'test.parquet',
+                })
+    train_dataset, val_dataset = dataset['train'], dataset['test']
+     
     model = AutoModelForSequenceClassification.from_pretrained(
         base_model_name,
-            num_labels=dataset.n_labels,
-            problem_type="multi_label_classification"
+        num_labels=n_systems,
+        problem_type="multi_label_classification"
     )
     model.to(compute_device)
 
@@ -109,8 +146,9 @@ if __name__ == '__main__':
 
     """Fine-tune the model with LoRA."""
     training_args = TrainingArguments(
+        label_names=label_names,
         output_dir='./results',
-        num_train_epochs=50,
+        num_train_epochs=5,
         per_device_train_batch_size=4,
         per_device_eval_batch_size=4,
         warmup_steps=100,
@@ -127,7 +165,7 @@ if __name__ == '__main__':
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=val_dataset,
-        compute_metrics=compute_metrics
+        compute_metrics=compute_metrics,
     )
 
     trainer.train()
