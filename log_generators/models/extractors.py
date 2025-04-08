@@ -196,7 +196,13 @@ if __name__ == '__main__':
 
     trainer.train()
 
-    # 5. Predict
+    # 5. Evaluate the fine-tuned model
+    results = trainer.evaluate()
+
+    # Print evaluation results
+    print(results)
+
+    # 6. Predict
     test_note = "Dilithium matrix vectors out of range with indications of backwards antimatter flow."
     prediction = predict(test_note, model, label_encoder, tokenizer, compute_device)
     systems, probs = prediction['systems'], prediction['probabilities']
