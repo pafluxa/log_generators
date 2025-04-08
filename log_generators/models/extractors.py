@@ -84,7 +84,7 @@ if __name__ == '__main__':
     uss_enterprise_systems_info = config
 
     dataset = USSEnterpriseSystemsDataset(
-        generator=USSEnterpriseDiagnosticGenerator(refine_with_deepseek=False),
+        generator=USSEnterpriseDiagnosticGenerator(refine_with_deepseek=True),
         config = uss_enterprise_systems_info,
     ) 
     train_dataset, val_dataset = dataset, None
