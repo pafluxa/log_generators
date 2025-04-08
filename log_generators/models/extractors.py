@@ -21,6 +21,9 @@ from log_generators.generators.uss_enterprise import USSEnterpriseDiagnosticGene
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 def compute_metrics(pred):
+    
+    print("I AM IRON MAN!!!")
+    
     labels = pred.label_ids
     logits = pred.predictions
     preds = (torch.sigmoid(torch.tensor(logits)) > 0.5).int().numpy()
