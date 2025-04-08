@@ -157,7 +157,8 @@ if __name__ == '__main__':
         logging_steps=1,
         eval_strategy="epoch" if val_dataset else "no",
         save_strategy="epoch",
-        load_best_model_at_end=True if val_dataset else False
+        load_best_model_at_end=True if val_dataset else False,
+        metric_for_best_model='f1'
     )
 
     trainer = Trainer(
