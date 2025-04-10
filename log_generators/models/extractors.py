@@ -87,8 +87,7 @@ def predict(note, model, label_encoder, tokenizer, compute_device, threshold=0.5
 
 def dataset_to_hf_dataset(tokenizer_name, names, chunk_sizes):
 
-    batch_size = 8
-    max_length = 512
+    max_length = 2048
     n_systems = 0
 
     with open('log_generators/configs/uss_enterprise.json', 'r') as f:
@@ -106,7 +105,8 @@ def dataset_to_hf_dataset(tokenizer_name, names, chunk_sizes):
             run_id = run_id,
             config = uss_enterprise_systems_info,
             chunk_size = n,
-            offset = offset
+            offset = offset,
+            max_length = max_length,
         )
         offset = offset + n
 
@@ -163,7 +163,7 @@ if __name__ == '__main__':
             dataset_to_hf_dataset(
                 base_model_name, 
                 ["train", "test", "validation"], 
-                [320, 50, 50]
+                [300, 50, 100]
             )
 
     dataset = load_dataset("parquet",
