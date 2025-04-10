@@ -179,10 +179,9 @@ if __name__ == '__main__':
 
     lora_config = LoraConfig(
         inference_mode=False,
-        r=16,
-        lora_alpha=16,
+        r=1,
+        lora_alpha=4,
         lora_dropout=0.1,
-        bias="all",
         target_modules=["key", "query", "value"],
         modules_to_save=["classifier"],
     )
