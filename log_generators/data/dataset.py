@@ -90,7 +90,7 @@ class USSEnterpriseSystemsDataset(IterableDataset):
         labels = torch.tensor(labels, dtype=torch.float32)
         # tokenize notes
         tokenized = self.tokenizer(notes,
-            # truncation=True,
+            truncation=True,
             # padding="max_length",
             return_tensors="pt"
         )
