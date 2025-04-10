@@ -95,44 +95,43 @@ def dataset_to_hf_dataset(names, chunk_sizes):
 
     model_name = "deepseek-r1:32b"
     run_id = 'f4c7c5e7'
-    dataset = USSEnterpriseSystemsDataset(
-        base_path = './txt',
-        model_name = model_name,
-        run_id = run_id,
-        config = uss_enterprise_systems_info,
-        chunk_size = 64
-    )
-    n_systems = dataset.n_labels
-
-    pasch_data = pa.schema([
-        ("input_ids", pa.list_(pa.int64(), max_length)),
-        ("attention_mask", pa.list_(pa.int64(), max_length)),
-        ("labels", pa.list_(pa.float32(), n_systems))
-    ])
-
-    last_k = 0
+    offset = 0
     for n, name in zip(chunk_sizes, names):
-        k = 0
+        dataset = USSEnterpriseSystemsDataset(
+            base_path = './txt',
+            model_name = model_name,
+            run_id = run_id,
+            config = uss_enterprise_systems_info,
+            chunk_size = n,
+            start = offset,
+            end = offset + n
+        )
+        offset = offset + n
+
+        n_systems = dataset.n_labels
+
+        pasch_data = pa.schema([
+            ("input_ids", pa.list_(pa.int64(), max_length)),
+            ("attention_mask", pa.list_(pa.int64(), max_length)),
+            ("labels", pa.list_(pa.float32(), n_systems))
+        ])
+
         t1, t2, t3 = [], [], []
         for input_ids, attn_mask, enc_lbl in dataset:
-            if k < last_k:
-                k = k + 1
-                continue
             t1.append([input_ids.numpy(),])
             t2.append([attn_mask.numpy(),])
             t3.append([enc_lbl.numpy(),])
-            k = k + 1
-            if k > n + last_k:
-                last_k = k
-                break
         c1 = pa.chunked_array(t1)
         c2 = pa.chunked_array(t2)
         c3 = pa.chunked_array(t3)
+
         patab_data = pa.table(
             [c1, c2, c3],
             names=['input_ids', 'attention_mask', 'labels']
         )
+
         Path(f"./tokenized/{model_name}/{run_id}/").mkdir(parents=True, exist_ok=True)
+
         papq.write_table(
             patab_data,
             f"tokenized/{model_name}/{run_id}/{name}.parquet",

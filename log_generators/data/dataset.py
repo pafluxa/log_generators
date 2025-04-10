@@ -34,7 +34,9 @@ class USSEnterpriseSystemsDataset(IterableDataset):
                  config: Dict[str, List[Dict[str, str]]],
                  tokenizer_name: str = 'bert-base-uncased',
                  max_length: int = 512,
-                 chunk_size: int = 128):
+                 chunk_size: int = 128,
+                 start: int = 0,
+                 end: int = 10000000000):
 
         self.run_id = run_id
         self.base_path = base_path
@@ -47,8 +49,8 @@ class USSEnterpriseSystemsDataset(IterableDataset):
         # create ordinal encoding of labels
         self.labels_as_txt = list(config.keys())
         self._fit_label_encoder()
-        self.start = 0
-        self.end = 0
+        self.start = start
+        self.end = min(end, chunk_size)
 
     def _fit_label_encoder(self):
 
@@ -58,18 +60,6 @@ class USSEnterpriseSystemsDataset(IterableDataset):
         print(f"[DEBUG]  found {self.n_labels} unique systems.")
 
     def _load_chunk(self) -> Tuple[List[str], List[str]]:
-
-        data_path = os.path.join(self.base_path, self.model_name, self.run_id)
-        notes_path = os.path.join(data_path, "notes")
-        # count number of files
-        files = glob.glob(notes_path + '/*.txt')
-        n_reports = len(files)
-        # load everything or just a chunk
-        start = max(self.start, self.end)
-        end = min(self.chunk_size, n_reports - self.end)
-        print(start, end)
-        self.start = start
-        self.end = end
 
         notes: List[str] = []
         systems: List[str] = []
