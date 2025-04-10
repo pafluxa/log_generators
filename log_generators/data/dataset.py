@@ -35,8 +35,7 @@ class USSEnterpriseSystemsDataset(IterableDataset):
                  tokenizer_name: str = 'bert-base-uncased',
                  max_length: int = 512,
                  chunk_size: int = 128,
-                 start: int = 0,
-                 end: int = 10000000000):
+                 offset: int = 0):
 
         self.run_id = run_id
         self.base_path = base_path
@@ -49,8 +48,8 @@ class USSEnterpriseSystemsDataset(IterableDataset):
         # create ordinal encoding of labels
         self.labels_as_txt = list(config.keys())
         self._fit_label_encoder()
-        self.start = start
-        self.end = min(end, chunk_size)
+        self.start = offset
+        self.end = self.start + chunk_size
 
     def _fit_label_encoder(self):
 
@@ -91,13 +90,15 @@ class USSEnterpriseSystemsDataset(IterableDataset):
             padding="max_length",
             return_tensors="pt"
         )
-        for idx in range(self.start, self.end):
+        for idx in range(self.chunk_size):
             yield (
                 tokenized['input_ids'][idx],
                 tokenized['attention_mask'][idx],
                 labels[idx]
             )
 
+        self.start = self.start + self.chunk_size
+        self.end = self.start + self.chunk_size
 
 if __name__ == '__main__':
 

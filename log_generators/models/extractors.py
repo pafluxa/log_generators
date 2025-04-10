@@ -103,8 +103,7 @@ def dataset_to_hf_dataset(names, chunk_sizes):
             run_id = run_id,
             config = uss_enterprise_systems_info,
             chunk_size = n,
-            start = offset,
-            end = offset + n
+            offset = offset
         )
         offset = offset + n
 
