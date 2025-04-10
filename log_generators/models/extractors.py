@@ -197,7 +197,7 @@ if __name__ == '__main__':
         r=16,
         lora_alpha=32,
         lora_dropout=0.1,
-        target_modules=["v_proj", "q_proj"],
+        target_modules=["v", "q"],
         init_lora_weights='pissa',
 
     )
