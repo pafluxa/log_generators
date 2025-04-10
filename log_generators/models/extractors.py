@@ -100,7 +100,7 @@ def dataset_to_hf_dataset(names, chunk_sizes):
         model_name = model_name,
         run_id = run_id,
         config = uss_enterprise_systems_info,
-        chunk_size = sum(chunk_sizes)
+        chunk_size = 400
     )
     n_systems = dataset.n_labels
 
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     base_model_name = 'bert-base-uncased'
     compute_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    n_systems, label_names, label_encoder, tokenizer = dataset_to_hf_dataset(["train", "test"], [200, 50])
+    n_systems, label_names, label_encoder, tokenizer = dataset_to_hf_dataset(["train", "test"], [100, 50])
 
     dataset = load_dataset("parquet",
                 data_dir="./tokenized/deepseek-r1:32b/f4c7c5e7",
