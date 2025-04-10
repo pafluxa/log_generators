@@ -91,7 +91,7 @@ class USSEnterpriseSystemsDataset(IterableDataset):
         # tokenize notes
         tokenized = self.tokenizer(notes,
             truncation=True,
-            # padding="max_length",
+            padding="max_length",
             return_tensors="pt"
         )
         for idx in range(self.chunk_size):

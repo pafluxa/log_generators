@@ -156,7 +156,7 @@ class BCETrainer(Trainer):
 
 if __name__ == '__main__':
 
-    base_model_name = 'gpt2'
+    base_model_name = 'apple/OpenELM-1_1B-Instruct'
     compute_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     n_systems, label_names, label_encoder, tokenizer = \
