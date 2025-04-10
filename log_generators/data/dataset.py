@@ -100,7 +100,7 @@ class USSEnterpriseSystemsDataset(IterableDataset):
             padding="max_length",
             return_tensors="pt"
         )
-        for idx in range(self.chunk_size):
+        for idx in range(self.start, self.end):
             yield (
                 tokenized['input_ids'][idx],
                 tokenized['attention_mask'][idx],
