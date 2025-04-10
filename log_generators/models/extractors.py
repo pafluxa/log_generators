@@ -1,6 +1,7 @@
 import numpy
 import torch
 import json
+from pathlib import Path
 
 import pyarrow as pa
 import pyarrow.parquet as papq
@@ -75,7 +76,7 @@ def predict(note, model, label_encoder, tokenizer, compute_device, threshold=0.5
 
     probs = probs[above_threshold]
     sorting_idx = numpy.argsort(probs)
-    
+
     return {
         'systems': predicted_labels[0],
         'probabilities': probs,
@@ -83,57 +84,89 @@ def predict(note, model, label_encoder, tokenizer, compute_device, threshold=0.5
     }
 
 def dataset_to_hf_dataset(names, chunk_sizes):
-    
+
+    batch_size = 8
     max_length = 512
+    n_systems = 0
+
     with open('log_generators/configs/uss_enterprise.json', 'r') as f:
         config = json.loads(f.read())
     uss_enterprise_systems_info = config
 
-    for name, chunk_size in zip(names, chunk_sizes):
-        dataset = USSEnterpriseSystemsDataset(
-            generator=USSEnterpriseDiagnosticGenerator(refine_with_deepseek=True),
-            config = uss_enterprise_systems_info,
-            chunk_size=chunk_size
-        )
-        n_systems = dataset.n_labels
+    model_name = "deepseek-r1:32b"
+    run_id = 'f4c7c5e7'
+    dataset = USSEnterpriseSystemsDataset(
+        base_path = './txt',
+        model_name = model_name,
+        run_id = run_id,
+        config = uss_enterprise_systems_info,
+        chunk_size = sum(chunk_sizes)
+    )
+    n_systems = dataset.n_labels
 
-        t1 = []
-        t2 = []
-        t3 = []
+    pasch_data = pa.schema([
+        ("input_ids", pa.list_(pa.int64(), max_length)),
+        ("attention_mask", pa.list_(pa.int64(), max_length)),
+        ("labels", pa.list_(pa.float32(), n_systems))
+    ])
+
+    last_k = 0
+    for n, name in zip(chunk_sizes, names):
+        k = 0
+        t1, t2, t3 = [], [], []
         for input_ids, attn_mask, enc_lbl in dataset:
+            if k < last_k:
+                k = k + 1
+                continue
             t1.append([input_ids.numpy(),])
             t2.append([attn_mask.numpy(),])
             t3.append([enc_lbl.numpy(),])
+            k = k + 1
+            if k > n:
+                last_k = k
+                break
         c1 = pa.chunked_array(t1)
         c2 = pa.chunked_array(t2)
         c3 = pa.chunked_array(t3)
         patab_data = pa.table(
-            [c1, c2, c3], 
-            names=['input_ids', 'attention_mask', 'labels'],
+            [c1, c2, c3],
+            names=['input_ids', 'attention_mask', 'labels']
         )
+        Path(f"./tokenized/{model_name}/{run_id}/").mkdir(parents=True, exist_ok=True)
         papq.write_table(
-            patab_data, 
-            f"./tokenized/uss_enterprise_logs/{name}.parquet", 
+            patab_data,
+            f"tokenized/{model_name}/{run_id}/{name}.parquet",
             compression=None
         )
-    
+
     return n_systems, dataset.labels_as_txt, dataset.label_encoder, dataset.tokenizer
 
+class BCETrainer(Trainer):
+    def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
+        labels = inputs.get("labels")
+        outputs = model(**inputs)
+        logits = torch.nn.functional.sigmoid(get('logits'))
+        loss_fct = torch.nn.BCELoss()
+        loss = loss_fct(logits.squeeze(), labels.squeeze())
+
+        return (loss, outputs) if return_outputs else loss
+
 if __name__ == '__main__':
-   
+
     base_model_name = 'bert-base-uncased'
     compute_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
-    n_systems, label_names, label_encoder, tokenizer = dataset_to_hf_dataset(["train", "test"], [1024, 128])
-    
-    dataset = load_dataset("parquet", 
-                data_dir="./tokenized/uss_enterprise_logs/", 
+
+    n_systems, label_names, label_encoder, tokenizer = dataset_to_hf_dataset(["train", "test"], [200, 50])
+
+    dataset = load_dataset("parquet",
+                data_dir="./tokenized/deepseek-r1:32b/f4c7c5e7",
                 data_files={
                     'train': 'train.parquet',
-                    'test': 'test.parquet',
-                })
-    train_dataset, eval_dataset = dataset['train'], dataset['test']
-     
+                    'test': 'test.parquet'})
+
+    train_dataset = dataset['train']
+    eval_dataset = dataset['test']
+
     model = AutoModelForSequenceClassification.from_pretrained(
         base_model_name,
         num_labels=n_systems,
@@ -163,14 +196,14 @@ if __name__ == '__main__':
         eval_strategy="epoch",
     )
 
-    trainer = Trainer(
+    trainer = BCETrainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         compute_metrics=compute_metrics,
     )
-    
+
     trainer.train()
 
     # 5. Evaluate the fine-tuned model

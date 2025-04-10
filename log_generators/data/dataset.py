@@ -1,5 +1,10 @@
 from typing import Dict, List, Tuple
+
+import os
+import glob
 import json
+from pathlib import Path
+
 from tqdm import tqdm
 
 import pyarrow as pa
@@ -15,56 +20,77 @@ from log_generators.generators.uss_enterprise import USSEnterpriseDiagnosticGene
 
 
 class USSEnterpriseSystemsDataset(IterableDataset):
-    
+
     label_encoder: MultiLabelBinarizer
     n_labels: int
-    
-    def __init__(self, 
-                 generator: USSEnterpriseDiagnosticGenerator,
-                 config: Dict,
-                 tokenizer_name: str = 'bert-base-uncased', 
+    run_id: str
+    base_path: str
+    model_name: str
+
+    def __init__(self,
+                 base_path: str,
+                 model_name: str,
+                 run_id: str,
+                 config: Dict[str, List[Dict[str, str]]],
+                 tokenizer_name: str = 'bert-base-uncased',
                  max_length: int = 512,
                  chunk_size: int = 128):
-        """
-        Args:
-            texts (list): List of symptom description strings
-            system_pairs (list): List of system/subsystem strings in "system::subsystem" format
-            tokenizer_name (str): Name/path of Hugging Face tokenizer
-            max_length (int): Maximum sequence length for tokenization
-        """
-        self.gen = generator
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+
+        self.run_id = run_id
+        self.base_path = base_path
+        self.model_name = model_name
         self.max_length = max_length
         self.chunk_size = chunk_size
+
+        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+
         # create ordinal encoding of labels
         self.labels_as_txt = list(config.keys())
         self._fit_label_encoder()
-    
+        self.start = 0
+        self.end = 0
+
     def _fit_label_encoder(self):
-        
+
         self.label_encoder = MultiLabelBinarizer()
         self.label_encoder.fit([self.labels_as_txt, ])
         self.n_labels = len(self.label_encoder.classes_)
         print(f"[DEBUG]  found {self.n_labels} unique systems.")
 
-    def _generate_and_parse_reports(self) -> Dict[str, List[str]]:
-        
-        notes = []
-        systems = [] 
-        for _ in tqdm(range(self.chunk_size)):
-            data = self.gen.generate_report()
-            note_txt = data['note'][0]
-            affections_raw = data['systems']
-            affections = affections_raw.split(';')
-            affected_systems = [asys.split('::')[0] for asys in affections]
-            notes.append(note_txt) 
-            systems.append(affected_systems)
-            
+    def _load_chunk(self) -> Tuple[List[str], List[str]]:
+
+        data_path = os.path.join(self.base_path, self.model_name, self.run_id)
+        notes_path = os.path.join(data_path, "notes")
+        # count number of files
+        files = glob.glob(notes_path + '/*.txt')
+        n_reports = len(files)
+        # load everything or just a chunk
+        start = max(0, self.start)
+        end = min(self.chunk_size, n_reports - self.end)
+        self.start = start
+        self.end = end
+
+        notes: List[str] = []
+        systems: List[str] = []
+        for id in tqdm(range(self.start, self.end)):
+            with open(f"./txt/{self.model_name}/{self.run_id}/notes/{id:06d}.txt", 'r') as f:
+                note = f.read().strip()
+                notes.append(note)
+            # read affected system list
+            with open(f"./txt/{self.model_name}/{self.run_id}/systems/{id:06d}.txt", 'r') as f:
+                labeled_systems = []
+                affections = f.read().strip().split(';')
+                for system_subsystem in affections:
+                    labeled_systems.append(system_subsystem.split('::')[0])
+                systems.append(labeled_systems)
+
+        assert len(notes) == len(systems), f"Different number counts between notes ({len(notes)}) and systems ({len(systems)})."
+
         return notes, systems
 
     def __iter__(self):
-        
-        notes, systems = self._generate_and_parse_reports()
+
+        notes, systems = self._load_chunk()
         # represent systems using multi-hot encoding
         labels = self.label_encoder.transform(systems)
         labels = torch.tensor(labels, dtype=torch.float32)
@@ -80,31 +106,34 @@ class USSEnterpriseSystemsDataset(IterableDataset):
                 tokenized['attention_mask'][idx],
                 labels[idx]
             )
-            
-            
+
+
 if __name__ == '__main__':
-    
+
     batch_size = 8
     max_length = 512
     n_systems = 0
-     
-    import json
+
     with open('log_generators/configs/uss_enterprise.json', 'r') as f:
         config = json.loads(f.read())
     uss_enterprise_systems_info = config
 
+    model_name = "deepseek-r1:32b"
+    run_id = 'f4c7c5e7'
     dataset = USSEnterpriseSystemsDataset(
-        generator=USSEnterpriseDiagnosticGenerator(refine_with_deepseek=False),
+        base_path = './txt',
+        model_name = model_name,
+        run_id = run_id,
         config = uss_enterprise_systems_info,
     )
     n_systems = dataset.n_labels
 
     # dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=0)
-    
+
     pasch_data = pa.schema([
-        ("input_ids", pa.list_(pa.int64(), max_length)), 
+        ("input_ids", pa.list_(pa.int64(), max_length)),
         ("attention_mask", pa.list_(pa.int64(), max_length)),
-        ("labels", pa.list_(pa.float32(), n_systems))    
+        ("labels", pa.list_(pa.float32(), n_systems))
     ])
 
     t1 = []
@@ -118,15 +147,17 @@ if __name__ == '__main__':
     c2 = pa.chunked_array(t2)
     c3 = pa.chunked_array(t3)
     patab_data = pa.table(
-        [c1, c2, c3], 
+        [c1, c2, c3],
         names=['input_ids', 'attention_mask', 'labels']
     )
-    
+
+    table_path = Path(f"./tokenized/{model_name}/{run_id}/").mkdir(parents=True, exist_ok=True)
+    print(table_path)
     papq.write_table(
-        patab_data, 
-        "tokenized/uss_enterprise_logs.parquet", 
+        patab_data,
+        f"tokenized/{model_name}/{run_id}/uss_enterprise_logs.parquet",
         compression=None
     )
-    
-    test = papq.read_table('tokenized/uss_enterprise_logs/train.parquet')
+
+    test = papq.read_table(f'tokenized/{model_name}/{run_id}/uss_enterprise_logs.parquet')
     print(test.to_pandas())
