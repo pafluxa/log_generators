@@ -86,7 +86,7 @@ def predict(note, model, label_encoder, tokenizer, compute_device, threshold=0.5
         'sorting_index': sorting_idx
     }
 
-def dataset_to_hf_dataset(names, chunk_sizes):
+def dataset_to_hf_dataset(tokenizer_name, names, chunk_sizes):
 
     batch_size = 8
     max_length = 512
@@ -103,6 +103,7 @@ def dataset_to_hf_dataset(names, chunk_sizes):
         dataset = USSEnterpriseSystemsDataset(
             base_path = './txt',
             model_name = model_name,
+            tokenizer_name = tokenizer_name,
             run_id = run_id,
             config = uss_enterprise_systems_info,
             chunk_size = n,
@@ -159,7 +160,12 @@ if __name__ == '__main__':
     base_model_name = 'Qwen/Qwen2.5-3B'
     compute_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    n_systems, label_names, label_encoder, tokenizer = dataset_to_hf_dataset(["train", "test", "validation"], [250, 100, 50])
+    n_systems, label_names, label_encoder, tokenizer = \
+            dataset_to_hf_dataset(
+                base_model_name, 
+                ["train", "test", "validation"], 
+                [250, 100, 50]
+            )
 
     dataset = load_dataset("parquet",
                 data_dir="./tokenized/deepseek-r1:32b/f4c7c5e7",
