@@ -189,7 +189,7 @@ if __name__ == '__main__':
         r=16,
         lora_alpha=32,
         lora_dropout=0.1,
-        target_modules=["query_key_value"],
+        target_modules=["query", "value"],
         init_lora_weights='gaussian',
 
     )
