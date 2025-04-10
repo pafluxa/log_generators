@@ -193,7 +193,8 @@ if __name__ == '__main__':
         lora_alpha=32,
         lora_dropout=0.1,
         target_modules=["v", "q"],
-        task_type="SEQ_CLS"
+        init_lora_weights='pissa',
+
     )
     model = get_peft_model(model, lora_config)
     model.print_trainable_parameters()
