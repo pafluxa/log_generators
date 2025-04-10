@@ -20,7 +20,6 @@ from sklearn.preprocessing import OrdinalEncoder
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 from log_generators.data.dataset import USSEnterpriseSystemsDataset
-from log_generators.generators.uss_enterprise import USSEnterpriseDiagnosticGenerator
 
 
 def compute_metrics(p: EvalPrediction):
@@ -30,15 +29,15 @@ def compute_metrics(p: EvalPrediction):
     preds = (torch.sigmoid(torch.tensor(logits)) > 0.5).int().numpy()
     labels = p.label_ids
     # Calculate precision, recall, F1
-    precision = numpy.logical_and(preds, labels).sum() / preds.sum()
-    recall = numpy.logical_and(preds, labels).sum() / labels.sum()
-    f1 = 2 * (precision * recall) / (precision + recall + 1e-10)
+    precision = precision_score(labels, preds, average='micro')
+    recall = recall_score(labels, preds, average='micro')
+    f1 = f1_score(labels, preds, average='micro')
 
     return {
-        'precision': precision.item(),
-       'recall': recall.item(),
-       'f1': f1.item()
-   }
+        'precision': precision,
+        'recall': recall,
+        'f1': f1
+    }
 
 def predict(note, model, label_encoder, tokenizer, compute_device, threshold=0.5):
     """
