@@ -157,7 +157,7 @@ class BCETrainer(Trainer):
 
 if __name__ == '__main__':
 
-    base_model_name = 'Qwen/Qwen2.5-3B'
+    base_model_name = 'google/flan-t5-large'
     compute_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     n_systems, label_names, label_encoder, tokenizer = \
@@ -182,7 +182,7 @@ if __name__ == '__main__':
         base_model_name,
         num_labels=n_systems,
         problem_type="multi_label_classification",
-        torch_dtype=torch.float16
+        load_in_8_bit=True
     )
     lora_config = LoraConfig(
         r=16,
