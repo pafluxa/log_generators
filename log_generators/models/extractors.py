@@ -143,15 +143,13 @@ def dataset_to_hf_dataset(names, chunk_sizes):
 
 class BCETrainer(Trainer):
 
-    loss_fct = nn.BCEWithLogitsLoss()
-
     def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
         labels = inputs.get("labels")
         outputs = model(**inputs)
         logits = outputs.get('logits')
         # loss_fct = torch.nn.BCEWithLogitsLoss()
         # print(logits[0], labels[0])
-        loss = loss_fct(logits, labels)
+        loss = nn.functional.binary_cross_entropy_with_logits(logits, labels)
 
         return (loss, outputs) if return_outputs else loss
 
