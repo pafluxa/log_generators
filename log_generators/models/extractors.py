@@ -145,7 +145,8 @@ class BCETrainer(Trainer):
         outputs = model(**inputs)
         logits = torch.nn.functional.sigmoid(outputs.get('logits'))
         loss_fct = torch.nn.BCELoss()
-        loss = loss_fct(logits.squeeze(), labels.squeeze())
+        print(logits[0], labels[0])
+        loss = loss_fct(logits, labels)
 
         return (loss, outputs) if return_outputs else loss
 
@@ -154,16 +155,18 @@ if __name__ == '__main__':
     base_model_name = 'bert-base-uncased'
     compute_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    n_systems, label_names, label_encoder, tokenizer = dataset_to_hf_dataset(["train", "test"], [100, 50])
+    n_systems, label_names, label_encoder, tokenizer = dataset_to_hf_dataset(["train", "test", "validation"], [250, 100, 50])
 
     dataset = load_dataset("parquet",
                 data_dir="./tokenized/deepseek-r1:32b/f4c7c5e7",
                 data_files={
-                    'train': 'train.parquet',
-                    'test': 'test.parquet'})
+                    "train": "train.parquet",
+                    "test": "test.parquet",
+                    "validation": "validation.parquet"})
 
-    train_dataset = dataset['train']
-    eval_dataset = dataset['test']
+    train_dataset = dataset["test"]
+    test_dataset = dataset["test"]
+    validation_dataset = dataset["validation"]
 
     model = AutoModelForSequenceClassification.from_pretrained(
         base_model_name,
