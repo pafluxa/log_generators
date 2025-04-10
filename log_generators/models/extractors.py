@@ -176,6 +176,7 @@ if __name__ == '__main__':
         problem_type="multi_label_classification"
     )
     model.to(compute_device)
+    model = model.half()
 
     lora_config = LoraConfig(
         inference_mode=False,
