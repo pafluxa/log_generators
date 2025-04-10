@@ -13,6 +13,7 @@ import pyarrow.parquet as papq
 import torch
 from torch.utils.data import IterableDataset, DataLoader
 from transformers import AutoTokenizer
+from transformers import GPT2Tokenizer
 
 from sklearn.preprocessing import MultiLabelBinarizer
 
@@ -42,8 +43,11 @@ class USSEnterpriseSystemsDataset(IterableDataset):
         self.model_name = model_name
         self.max_length = max_length
         self.chunk_size = chunk_size
-
-        self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+        
+        if tokenizer_name == 'gpt2':
+            self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+        else:
+            self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
 
         # create ordinal encoding of labels
         self.labels_as_txt = list(config.keys())
