@@ -182,10 +182,11 @@ if __name__ == '__main__':
     model = AutoModelForSequenceClassification.from_pretrained(
         base_model_name,
         num_labels=n_systems,
-        problem_type="multi_label_classification"
+        problem_type="multi_label_classification",
         quantization_config=bnb_config,
     )
     model.to(compute_device)
+    model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=False)
 
     lora_config = LoraConfig(
         inference_mode=False,
@@ -197,7 +198,6 @@ if __name__ == '__main__':
     model = get_peft_model(model, lora_config)
     model.print_trainable_parameters()
 
-    model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=False)
 
     """Fine-tune the model with LoRA."""
     training_args = TrainingArguments(
