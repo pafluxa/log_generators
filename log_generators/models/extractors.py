@@ -3,6 +3,8 @@ import torch
 import json
 from pathlib import Path
 
+from torch import nn
+
 import pyarrow as pa
 import pyarrow.parquet as papq
 
@@ -15,11 +17,11 @@ import numpy
 from typing import List, Dict
 
 from sklearn.preprocessing import OrdinalEncoder
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 from log_generators.data.dataset import USSEnterpriseSystemsDataset
 from log_generators.generators.uss_enterprise import USSEnterpriseDiagnosticGenerator
 
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 def compute_metrics(p: EvalPrediction):
     """Custom metrics for multi-label classification."""
