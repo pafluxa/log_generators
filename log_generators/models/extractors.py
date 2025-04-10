@@ -5,7 +5,6 @@ from pathlib import Path
 
 from torch import nn
 
-
 import pyarrow as pa
 import pyarrow.parquet as papq
 
@@ -173,21 +172,12 @@ if __name__ == '__main__':
     test_dataset = dataset["test"]
     validation_dataset = dataset["validation"]
 
-    bnb_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        load_4bit_use_double_quant=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.float16,
-    )
     model = AutoModelForSequenceClassification.from_pretrained(
         base_model_name,
         num_labels=n_systems,
         problem_type="multi_label_classification",
-        quantization_config=bnb_config,
+        dtype=torch.float16
     )
-    model.to(compute_device)
-    model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=False)
-
     lora_config = LoraConfig(
         r=16,
         lora_alpha=32,
@@ -197,6 +187,9 @@ if __name__ == '__main__':
 
     )
     model = get_peft_model(model, lora_config)
+    model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=False)
+    model.to(compute_device)
+
     model.print_trainable_parameters()
 
 
