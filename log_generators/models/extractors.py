@@ -189,11 +189,11 @@ if __name__ == '__main__':
     model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=False)
 
     lora_config = LoraConfig(
-        inference_mode=False,
-        r=8,
+        r=16,
         lora_alpha=32,
         lora_dropout=0.1,
-        target_modules=["key", "query", "value"],
+        target_modules=["v", "q"],
+        task_type="SEQ_CLS"
     )
     model = get_peft_model(model, lora_config)
     model.print_trainable_parameters()
