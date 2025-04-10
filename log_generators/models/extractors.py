@@ -26,7 +26,7 @@ from log_generators.data.dataset import USSEnterpriseSystemsDataset
 
 def compute_metrics(p: EvalPrediction):
     """Custom metrics for multi-label classification."""
-    logits = p.predictions
+    logits = p.predictions[0]
     print(logits.shape)
     # logits, labels = eval_pred.predictions, eval_pred.label_ids
     preds = (torch.sigmoid(torch.tensor(logits)) > 0.5).int().numpy()
@@ -165,7 +165,7 @@ if __name__ == '__main__':
             dataset_to_hf_dataset(
                 base_model_name, 
                 ["train", "test", "validation"], 
-                [250, 100, 50]
+                [200, 4, 4]
             )
 
     dataset = load_dataset("parquet",
