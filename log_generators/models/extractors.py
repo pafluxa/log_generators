@@ -176,7 +176,7 @@ if __name__ == '__main__':
         base_model_name,
         num_labels=n_systems,
         problem_type="multi_label_classification",
-        dtype=torch.float16
+        torch_dtype=torch.float16
     )
     lora_config = LoraConfig(
         r=16,
