@@ -67,6 +67,7 @@ class USSEnterpriseSystemsDataset(IterableDataset):
         # load everything or just a chunk
         start = max(0, self.start)
         end = min(self.chunk_size, n_reports - self.end)
+        print(start, end)
         self.start = start
         self.end = end
 
