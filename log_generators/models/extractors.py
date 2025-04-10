@@ -14,7 +14,7 @@ from datasets import Dataset, load_dataset
 from transformers import BitsAndBytesConfig
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from transformers import TrainingArguments, Trainer, EvalPrediction
-from peft import LoraConfig, get_peft_model, TaskType, prepare_model_for_int8_training
+from peft import LoraConfig, get_peft_model, TaskType, prepare_model_for_kbit_training
 
 import numpy
 from typing import List, Dict
@@ -187,18 +187,17 @@ if __name__ == '__main__':
     )
     model.to(compute_device)
 
-    model = prepare_model_for_int8_training(model)
-
     lora_config = LoraConfig(
         inference_mode=False,
-        r=1,
-        lora_alpha=4,
+        r=8,
+        lora_alpha=32,
         lora_dropout=0.1,
         target_modules=["key", "query", "value"],
-        modules_to_save=["classifier"],
     )
     model = get_peft_model(model, lora_config)
     model.print_trainable_parameters()
+
+    model = prepare_model_for_kbit_training(model, use_gradient_checkpoint=False)
 
     """Fine-tune the model with LoRA."""
     training_args = TrainingArguments(
