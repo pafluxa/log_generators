@@ -27,8 +27,6 @@ from log_generators.data.dataset import USSEnterpriseSystemsDataset
 def compute_metrics(p: EvalPrediction):
     """Custom metrics for multi-label classification."""
     logits = p.predictions
-    print(logits.shape)
-    # logits, labels = eval_pred.predictions, eval_pred.label_ids
     preds = (torch.sigmoid(torch.tensor(logits)) > 0.5).int().numpy()
     labels = p.label_ids
     # Calculate precision, recall, F1
@@ -183,12 +181,12 @@ if __name__ == '__main__':
         base_model_name,
         num_labels=n_systems,
         problem_type="multi_label_classification",
-        torch_dtype=torch.float16
+        # torch_dtype=torch.float16
     )
 
     lora_config = LoraConfig(
-        r=16,
-        lora_alpha=32,
+        r=2,
+        lora_alpha=8,
         lora_dropout=0.1,
         target_modules=["query", "value"],
         init_lora_weights='gaussian',
@@ -204,10 +202,10 @@ if __name__ == '__main__':
     training_args = TrainingArguments(
         label_names=["labels"],
         output_dir='./results',
-        num_train_epochs=8,
-        per_device_train_batch_size=8,
-        per_device_eval_batch_size=8,
-        warmup_steps=20,
+        num_train_epochs=20,
+        per_device_train_batch_size=4,
+        per_device_eval_batch_size=4,
+        warmup_steps=10,
         weight_decay=0.001,
         eval_strategy="epoch",
     )
