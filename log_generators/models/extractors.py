@@ -156,7 +156,7 @@ class BCETrainer(Trainer):
 
 if __name__ == '__main__':
 
-    base_model_name = 'google/flan-t5-large'#bert-large-uncased-whole-word-masking'
+    base_model_name = 'Qwen/Qwen2.5-3B'
     compute_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     n_systems, label_names, label_encoder, tokenizer = dataset_to_hf_dataset(["train", "test", "validation"], [250, 100, 50])
@@ -182,7 +182,7 @@ if __name__ == '__main__':
         r=16,
         lora_alpha=32,
         lora_dropout=0.1,
-        target_modules=["v", "q"],
+        target_modules=["v_proj", "q_proj"],
         init_lora_weights='pissa',
 
     )
