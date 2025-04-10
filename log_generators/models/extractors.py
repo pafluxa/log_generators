@@ -197,7 +197,7 @@ if __name__ == '__main__':
     model = get_peft_model(model, lora_config)
     model.print_trainable_parameters()
 
-    model = prepare_model_for_kbit_training(model, use_gradient_checkpoint=False)
+    model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=False)
 
     """Fine-tune the model with LoRA."""
     training_args = TrainingArguments(
