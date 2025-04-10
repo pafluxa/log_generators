@@ -202,14 +202,13 @@ if __name__ == '__main__':
         eval_strategy="epoch",
     )
 
-    trainer = BCETrainer(
+    trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=test_dataset,
         compute_metrics=compute_metrics,
     )
-
     trainer.train()
 
     # 5. Evaluate the fine-tuned model
