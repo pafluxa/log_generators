@@ -179,11 +179,13 @@ if __name__ == '__main__':
     model.to(compute_device)
 
     lora_config = LoraConfig(
-        task_type=TaskType.SEQ_CLS,
-        r=4,
+        inference_mode=False,
+        r=16,
         lora_alpha=16,
         lora_dropout=0.1,
-        target_modules='all-linear',
+        bias="all",
+        target_modules=["key", "query", "value"],
+        modules_to_save=["classifier"],
     )
     model = get_peft_model(model, lora_config)
     model.print_trainable_parameters()
@@ -193,8 +195,8 @@ if __name__ == '__main__':
         label_names=["labels"],
         output_dir='./results',
         num_train_epochs=8,
-        per_device_train_batch_size=16,
-        per_device_eval_batch_size=16,
+        per_device_train_batch_size=4,
+        per_device_eval_batch_size=4,
         warmup_steps=16,
         weight_decay=0.001,
         eval_strategy="epoch",
