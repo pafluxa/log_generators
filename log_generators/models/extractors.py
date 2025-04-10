@@ -173,17 +173,17 @@ if __name__ == '__main__':
     test_dataset = dataset["test"]
     validation_dataset = dataset["validation"]
 
-    # bnb_config = BitsAndBytesConfig(
-    #         load_in_4bit=True,
-    #         bnb_4bit_quant_type="nf4",
-    #         bnb_4bit_compute_dtype=compute_dtype,
-    #         bnb_4bit_use_double_quant=True,
-    # )
-
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        load_4bit_use_double_quant=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.float16,
+    )
     model = AutoModelForSequenceClassification.from_pretrained(
         base_model_name,
         num_labels=n_systems,
         problem_type="multi_label_classification"
+        quantization_config=bnb_config,
     )
     model.to(compute_device)
 
