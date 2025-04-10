@@ -156,7 +156,7 @@ class BCETrainer(Trainer):
 
 if __name__ == '__main__':
 
-    base_model_name = 'google-bert/bert-large-cased-whole-word-masking'
+    base_model_name = 'gpt2'
     compute_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     n_systems, label_names, label_encoder, tokenizer = \
@@ -181,7 +181,7 @@ if __name__ == '__main__':
         base_model_name,
         num_labels=n_systems,
         problem_type="multi_label_classification",
-        # torch_dtype=torch.float16
+        torch_dtype=torch.float16
     )
 
     lora_config = LoraConfig(
