@@ -185,7 +185,6 @@ if __name__ == '__main__':
         problem_type="multi_label_classification",
         load_in_8bit=True,
     )
-    model.to(compute_device)
     model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=False)
 
     lora_config = LoraConfig(
