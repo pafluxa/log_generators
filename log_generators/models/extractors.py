@@ -183,7 +183,7 @@ if __name__ == '__main__':
         base_model_name,
         num_labels=n_systems,
         problem_type="multi_label_classification",
-        quantization_config=bnb_conf,
+        quantization_config=bnb_config,
     )
     model.to(compute_device)
     model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=False)
