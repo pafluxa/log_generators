@@ -183,8 +183,9 @@ if __name__ == '__main__':
         base_model_name,
         num_labels=n_systems,
         problem_type="multi_label_classification",
-        load_in_8bit=True,
+        quantization_config=bnb_conf,
     )
+    model.to(compute_device)
     model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=False)
 
     lora_config = LoraConfig(
