@@ -48,7 +48,7 @@ class USSEnterpriseSystemsDataset(IterableDataset):
             self.tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
         else:
             self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
-
+        self.tokenizer.pad_token = self.tokenizer.eos_token
         # create ordinal encoding of labels
         self.labels_as_txt = list(config.keys())
         self._fit_label_encoder()
@@ -91,7 +91,7 @@ class USSEnterpriseSystemsDataset(IterableDataset):
         # tokenize notes
         tokenized = self.tokenizer(notes,
             truncation=True,
-            padding="max_length",
+            padding=True,
             return_tensors="pt"
         )
         for idx in range(self.chunk_size):

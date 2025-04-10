@@ -94,6 +94,7 @@ def dataset_to_hf_dataset(tokenizer_name, names, chunk_sizes):
         config = json.loads(f.read())
     uss_enterprise_systems_info = config
 
+    val_dataset = None
     model_name = "deepseek-r1:32b"
     run_id = 'f4c7c5e7'
     offset = 0
@@ -109,6 +110,8 @@ def dataset_to_hf_dataset(tokenizer_name, names, chunk_sizes):
             max_length = max_length,
         )
         offset = offset + n
+        if name == 'validation':
+            val_dataset = dataset
 
         n_systems = dataset.n_labels
 
@@ -140,7 +143,7 @@ def dataset_to_hf_dataset(tokenizer_name, names, chunk_sizes):
             compression=None
         )
 
-    return n_systems, dataset.labels_as_txt, dataset.label_encoder, dataset.tokenizer
+    return n_systems, dataset.labels_as_txt, dataset.label_encoder, dataset.tokenizer, val_dataset
 
 class BCETrainer(Trainer):
 
@@ -156,14 +159,14 @@ class BCETrainer(Trainer):
 
 if __name__ == '__main__':
 
-    base_model_name = 'apple/OpenELM-1_1B-Instruct'
+    base_model_name = 'microsoft/phi-1_5'
     compute_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    n_systems, label_names, label_encoder, tokenizer = \
+    n_systems, label_names, label_encoder, tokenizer, val_pt_dataset = \
             dataset_to_hf_dataset(
                 base_model_name, 
                 ["train", "test", "validation"], 
-                [300, 50, 100]
+                [300, 50, 50]
             )
 
     dataset = load_dataset("parquet",
@@ -177,18 +180,28 @@ if __name__ == '__main__':
     test_dataset = dataset["test"]
     validation_dataset = dataset["validation"]
 
+    quantization_config = BitsAndBytesConfig(
+       load_in_4bit=True,
+       bnb_4bit_compute_dtype=torch.bfloat16
+    )
+
     model = AutoModelForSequenceClassification.from_pretrained(
         base_model_name,
         num_labels=n_systems,
         problem_type="multi_label_classification",
-        torch_dtype=torch.float16
+        torch_dtype=torch.float16,
+        # quantization_config=quantization_config
     )
 
     lora_config = LoraConfig(
         r=8,
         lora_alpha=32,
         lora_dropout=0.1,
-        target_modules=["query", "value"],
+        target_modules=[
+            "dense",
+            "o_proj",
+            "qkv_proj"
+        ],
         init_lora_weights='gaussian',
 
     )
@@ -196,6 +209,38 @@ if __name__ == '__main__':
     model.to(compute_device)
 
     model.print_trainable_parameters()
+    
+    # 6. Predict
+    print("NO TRAINING")
+    print("-" * 80)
+    notes, systems = val_pt_dataset._load_chunk()
+    for test_note, test_system in zip(notes, systems):
+        
+        prediction = predict(test_note, model, label_encoder, tokenizer, compute_device)
+        predicted_systems, predicted_probs, sorting_index = \
+                prediction['systems'], prediction['probabilities'], prediction['sorting_index']
+        s_gt = set(test_system)
+        s_pr = set(predicted_systems)
+        # matches correspond to the intersection of ground-truth with prediction
+        s_match = s_gt.intersection(s_pr)
+        # misses correspond to the difference between ground-truth and prediction
+        s_misses = s_gt.difference(s_pr)
+
+        print("Diagnostic Analysis:")
+        print(f"Note: {test_note}")
+        print(f"[MATCH] {list(s_match)}")
+        print(f"[MISSES] {list(s_misses)}")
+        print("Predictions:")
+        for idx in sorting_index:
+            pred_system = predicted_systems[idx]
+            pred_prob = predicted_probs[idx]
+            if pred_system in list(s_match):
+                print(f"[POSITIVE MATCH] {pred_system} {pred_prob:.2%} probability")
+            else:
+                print(f"[NEGATIVE MATCH] {pred_system} {pred_prob:.2%} probability")
+
+        print("\n\n")
+    print("-" * 80)
 
 
     """Fine-tune the model with LoRA."""
@@ -203,8 +248,8 @@ if __name__ == '__main__':
         label_names=["labels"],
         output_dir='./results',
         num_train_epochs=20,
-        per_device_train_batch_size=4,
-        per_device_eval_batch_size=4,
+        per_device_train_batch_size=1,
+        per_device_eval_batch_size=1,
         warmup_steps=10,
         weight_decay=0.001,
         eval_strategy="epoch",
@@ -223,14 +268,36 @@ if __name__ == '__main__':
     results = trainer.evaluate(validation_dataset)
 
     # Print evaluation results
+    print("\n\nEVALUATION RESULTS")
     print(results)
+    print("-"* 80)
+    print("\n\n")
 
     # 6. Predict
-    test_note = "Dilithium matrix vectors out of range with indications of backwards antimatter flow."
-    prediction = predict(test_note, model, label_encoder, tokenizer, compute_device)
-    systems, probs = prediction['systems'], prediction['probabilities']
+    notes, systems = val_pt_dataset._load_chunk()
+    for test_note, test_system in zip(notes, systems):
+        
+        prediction = predict(test_note, model, label_encoder, tokenizer, compute_device)
+        predicted_systems, predicted_probs, sorting_index = \
+                prediction['systems'], prediction['probabilities'], prediction['sorting_index']
+        s_gt = set(test_system)
+        s_pr = set(predicted_systems)
+        # matches correspond to the intersection of ground-truth with prediction
+        s_match = s_gt.intersection(s_pr)
+        # misses correspond to the difference between ground-truth and prediction
+        s_misses = s_gt.difference(s_pr)
 
-    print("Diagnostic Analysis:")
-    print(f"Note: {test_note}")
-    for idx in prediction['sorting_index']:
-        print(f"- {systems[idx]}: {probs[idx]:.2%} probability")
+        print("Diagnostic Analysis:")
+        print(f"Note: {test_note}")
+        print(f"[MATCH] {list(s_match)}")
+        print(f"[MISSES] {list(s_misses)}")
+        print("Predictions:")
+        for idx in sorting_index:
+            pred_system = predicted_systems[idx]
+            pred_prob = predicted_probs[idx]
+            if pred_system in list(s_match):
+                print(f"[POSITIVE MATCH] {pred_system} {pred_prob:.2%} probability")
+            else:
+                print(f"[NEGATIVE MATCH] {pred_system} {pred_prob:.2%} probability")
+
+        print("\n\n")
