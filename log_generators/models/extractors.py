@@ -155,7 +155,7 @@ class BCETrainer(Trainer):
 
 if __name__ == '__main__':
 
-    base_model_name = 'bert-base-uncased'
+    base_model_name = 'bert-large-uncased-whole-word-masking'
     compute_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     n_systems, label_names, label_encoder, tokenizer = dataset_to_hf_dataset(["train", "test", "validation"], [250, 100, 50])
