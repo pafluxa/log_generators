@@ -5,13 +5,16 @@ from pathlib import Path
 
 from torch import nn
 
+
 import pyarrow as pa
 import pyarrow.parquet as papq
 
 from datasets import Dataset, load_dataset
+
+from transformers import BitsAndBytesConfig
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from transformers import TrainingArguments, Trainer, EvalPrediction
-from peft import LoraConfig, get_peft_model, TaskType
+from peft import LoraConfig, get_peft_model, TaskType, prepare_model_for_int8_training
 
 import numpy
 from typing import List, Dict
@@ -170,13 +173,21 @@ if __name__ == '__main__':
     test_dataset = dataset["test"]
     validation_dataset = dataset["validation"]
 
+    # bnb_config = BitsAndBytesConfig(
+    #         load_in_4bit=True,
+    #         bnb_4bit_quant_type="nf4",
+    #         bnb_4bit_compute_dtype=compute_dtype,
+    #         bnb_4bit_use_double_quant=True,
+    # )
+
     model = AutoModelForSequenceClassification.from_pretrained(
         base_model_name,
         num_labels=n_systems,
         problem_type="multi_label_classification"
     )
     model.to(compute_device)
-    model = model.half()
+
+    model = prepare_model_for_int8_training(model)
 
     lora_config = LoraConfig(
         inference_mode=False,
