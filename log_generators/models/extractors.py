@@ -185,8 +185,8 @@ if __name__ == '__main__':
     )
 
     lora_config = LoraConfig(
-        r=2,
-        lora_alpha=8,
+        r=8,
+        lora_alpha=32,
         lora_dropout=0.1,
         target_modules=["query", "value"],
         init_lora_weights='gaussian',
