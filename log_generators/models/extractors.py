@@ -210,7 +210,7 @@ if __name__ == '__main__':
         eval_strategy="epoch",
     )
 
-    trainer = Trainer(
+    trainer = BCETrainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
