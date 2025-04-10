@@ -143,7 +143,7 @@ class BCETrainer(Trainer):
     def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
         labels = inputs.get("labels")
         outputs = model(**inputs)
-        logits = torch.nn.functional.sigmoid(outputs.get('logits'))
+        logits = outputs.get('logits')
         loss_fct = torch.nn.BCELoss()
         print(logits[0], labels[0])
         loss = loss_fct(logits, labels)
