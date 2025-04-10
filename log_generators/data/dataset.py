@@ -65,7 +65,7 @@ class USSEnterpriseSystemsDataset(IterableDataset):
         files = glob.glob(notes_path + '/*.txt')
         n_reports = len(files)
         # load everything or just a chunk
-        start = max(0, self.start)
+        start = max(self.start, self.end)
         end = min(self.chunk_size, n_reports - self.end)
         print(start, end)
         self.start = start

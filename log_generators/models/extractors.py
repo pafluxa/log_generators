@@ -100,7 +100,7 @@ def dataset_to_hf_dataset(names, chunk_sizes):
         model_name = model_name,
         run_id = run_id,
         config = uss_enterprise_systems_info,
-        chunk_size = 400
+        chunk_size = 64
     )
     n_systems = dataset.n_labels
 
