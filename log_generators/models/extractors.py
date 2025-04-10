@@ -122,7 +122,7 @@ def dataset_to_hf_dataset(names, chunk_sizes):
             t2.append([attn_mask.numpy(),])
             t3.append([enc_lbl.numpy(),])
             k = k + 1
-            if k > n:
+            if k > n + last_k:
                 last_k = k
                 break
         c1 = pa.chunked_array(t1)
@@ -145,7 +145,7 @@ class BCETrainer(Trainer):
     def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
         labels = inputs.get("labels")
         outputs = model(**inputs)
-        logits = torch.nn.functional.sigmoid(get('logits'))
+        logits = torch.nn.functional.sigmoid(outputs.get('logits'))
         loss_fct = torch.nn.BCELoss()
         loss = loss_fct(logits.squeeze(), labels.squeeze())
 
