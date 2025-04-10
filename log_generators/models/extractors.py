@@ -140,12 +140,15 @@ def dataset_to_hf_dataset(names, chunk_sizes):
     return n_systems, dataset.labels_as_txt, dataset.label_encoder, dataset.tokenizer
 
 class BCETrainer(Trainer):
+
+    loss_fct = nn.BCEWithLogitsLoss()
+
     def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
         labels = inputs.get("labels")
         outputs = model(**inputs)
         logits = outputs.get('logits')
-        loss_fct = torch.nn.BCELoss()
-        print(logits[0], labels[0])
+        # loss_fct = torch.nn.BCEWithLogitsLoss()
+        # print(logits[0], labels[0])
         loss = loss_fct(logits, labels)
 
         return (loss, outputs) if return_outputs else loss
