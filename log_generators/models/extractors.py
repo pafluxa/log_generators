@@ -179,10 +179,10 @@ if __name__ == '__main__':
     validation_dataset = dataset["validation"]
 
     nf4_config = BitsAndBytesConfig(
-       load_in_4bit=True,
-       bnb_4bit_quant_type="nf4",
-       bnb_4bit_use_double_quant=True,
-       bnb_4bit_compute_dtype=torch.float16
+       load_in_8bit=True,
+       bnb_8bit_quant_type="nf4",
+       bnb_8bit_use_double_quant=True,
+       bnb_8bit_compute_dtype=torch.float16
     )
 
     model = AutoModelForSequenceClassification.from_pretrained(
@@ -191,7 +191,7 @@ if __name__ == '__main__':
         problem_type="multi_label_classification",
         quantization_config=nf4_config
     )
-    model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=False)
+    # model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=True)
 
     lora_config = LoraConfig(
         r=16,
