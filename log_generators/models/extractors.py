@@ -26,7 +26,8 @@ from log_generators.data.dataset import USSEnterpriseSystemsDataset
 
 def compute_metrics(p: EvalPrediction):
     """Custom metrics for multi-label classification."""
-    logits = p.predictions[0]
+    logits = p.predictions
+    print(logits.shape)
     # logits, labels = eval_pred.predictions, eval_pred.label_ids
     preds = (torch.sigmoid(torch.tensor(logits)) > 0.5).int().numpy()
     labels = p.label_ids
