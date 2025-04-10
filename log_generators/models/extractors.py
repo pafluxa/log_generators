@@ -157,7 +157,7 @@ class BCETrainer(Trainer):
 
 if __name__ == '__main__':
 
-    base_model_name = 'google/flan-t5-large'
+    base_model_name = 'google-bert/bert-large-cased-whole-word-masking'
     compute_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     n_systems, label_names, label_encoder, tokenizer = \
@@ -204,9 +204,9 @@ if __name__ == '__main__':
         label_names=["labels"],
         output_dir='./results',
         num_train_epochs=8,
-        per_device_train_batch_size=4,
-        per_device_eval_batch_size=4,
-        warmup_steps=16,
+        per_device_train_batch_size=8,
+        per_device_eval_batch_size=8,
+        warmup_steps=20,
         weight_decay=0.001,
         eval_strategy="epoch",
     )
