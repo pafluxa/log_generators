@@ -54,28 +54,31 @@ class USSEnterpriseDiagnosticGenerator:
         if refine:
             self.model_name = model_name
             self.refinement_enabled = True
-            self.ollama_url = "http://haddock.lab.fluxa.org:11434/api/generate"
+            self.ollama_url = "http://localhost:11434/api/generate"
             self.ollama_headers = {"Content-Type": "application/json"}
             self._template = """
-# Context
-A note was generated to mimic technical diagnoses of the USS Enterprise. The note is notorious for having bad quality due
-to an evident lack of "human factor", poor semantics and repetition of keywords (like "anomaly", "secondary", etc)
+# Task description
+You are a Startreck fan who is asked to refine notes that were generated to mimic technical diagnoses of the USS Enterprise. To refine the notes, you must follow the instructions below.
 
-# Instructions
 1. You must read the note carefully to identify the main ideas that it contains.
 2. Rewrite the note so it contains the exact same main ideas. Be very careful to stick to the requirements.
 3. You are allowed to be very slightly creative from time to time.
 4. You are encouraged to make the note look like if it was written by a person in a rush.
 5. You must answer with the contents of the note, and the contents of the note only.
+6. Your answer must contain the note and the note only.
+7. Make sure that the note has no less than 200 characters and no more than 1000 characters.
+8. The note needs to be a single block of plain text.
+9. Change the articulation of words in the note to make it as "human" as possible.
+10. Change the order in which ideas, concepts or facts present themselves in the original note.
+11. Replace the word "anomaly" by "problem", "issue", "malfunction" or other equivalent expression when needed.
 
-# Formatting
-- The refined note MUST have between 200 and 400 characters.
-- The refined note MUST be formatted as a single block of plain-text.
+NEVER answer anything besides the note itself. 
 
-# Variations
-- Change the articulation of words in the note to make it "human-like".
-- Change the order in which ideas, concepts or facts present themselves in the original note.
-- Replace the word "anomaly" by "problem", "issue", "malfunction" or other equivalent expression when needed.
+Empty lines are not allowed. 
+
+Listings are not allowed. 
+
+Good luck!
 
 # Note
 
@@ -237,6 +240,7 @@ to an evident lack of "human factor", poor semantics and repetition of keywords 
             response_text = response.text
             payload = json.loads(response_text)
             cot_and_refined_note = payload["response"]
+            report['cot'] = cot_and_refined_note
             refined_note = re.sub(r'<think>.*?</think>', '', cot_and_refined_note, flags=re.DOTALL)
             print(f"[DEBUG] Server answered: \n\n{refined_note}\n\n")
 
@@ -273,7 +277,7 @@ if __name__ == "__main__":
     from pathlib import Path
 
     model_name = 'deepseek-r1:32b'
-    n_reports = 512
+    n_reports = 1000
     batch = 1
 
     hash = hashlib.sha1(str(time.asctime()).encode("UTF-8")).hexdigest()
@@ -291,6 +295,12 @@ if __name__ == "__main__":
         # write full report
         full_report = generator.generate_full_report(report=report)
         Path(f"./txt/{model_name}/{run_id}/reports/").mkdir(parents=True, exist_ok=True)
+        with open(f"./txt/{model_name}/{run_id}/reports/{k:06d}.txt", 'w') as f:
+            f.write(full_report)
+        
+        # write full answer with COT
+        full_report = generator.generate_full_report(report=report)
+        Path(f"./txt/{model_name}/{run_id}/cot/").mkdir(parents=True, exist_ok=True)
         with open(f"./txt/{model_name}/{run_id}/reports/{k:06d}.txt", 'w') as f:
             f.write(full_report)
 
